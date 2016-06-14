@@ -1,0 +1,30 @@
+{
+  "name": "mservice-calendar",
+  "version": "1.0.0",
+  "description": "Calendar microservice",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/makeomatic/mservice-calendar.git"
+  },
+  "keywords": [
+    "calendar",
+    "microservice"
+  ],
+  "author": "Dmitry Gorbunov <atskiisotona@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/makeomatic/mservice-calendar/issues"
+  },
+  "homepage": "https://github.com/makeomatic/mservice-calendar#readme",
+  "dependencies": {
+    "bluebird": "^3.4.0",
+    "bunyan": "^1.8.1",
+    "co": "^4.6.0",
+    "mservice": "^2.1.1",
+    "node-crate": "^1.0.26"
+  }
+}
