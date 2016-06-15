@@ -1,0 +1,27 @@
+{
+  "id": "event",
+  "type": "object",
+  "required": ["title", "description", "days", "recurring"],
+  "properties": {
+    "id": { "type": "integer" },
+    "title": { "type": "string", "minLength": 3 },
+    "description": { "type": "string", "minLength": 3 },
+    "tags": { "type": "array", "items": { "type": "string", "minLength": 3 } },
+    "days": {
+      "type": "object",
+      "properties": {
+        "monday": { "type": "boolean", "default": false },
+        "tuesday": { "type": "boolean", "default": false },
+        "wednesday": { "type": "boolean", "default": false },
+        "thursday": { "type": "boolean", "default": false },
+        "friday": { "type": "boolean", "default": false },
+        "saturday": { "type": "boolean", "default": false },
+        "sunday": { "type": "boolean", "default": false }
+      }
+    },
+    "recurring": { "type": "integer", "enum": [0, 1] },
+    "start_time": { "type": "integer" },
+    "end_time": { "type": "integer" }
+  },
+  "additionalProperties": false
+}

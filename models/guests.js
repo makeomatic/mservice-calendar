@@ -1,22 +1,22 @@
 const Model = require('./model');
 
-class HostModel extends Model {
+class GuestModel extends Model {
     constructor(...args) {
         super(...args);
     }
 
     static migrate(crate) {
-        return crate.create(HostModel.schema);
+        return crate.create(GuestModel.schema);
     }
 }
 
-HostModel.tableName = 'calendar.hosts';
-HostModel.schema = {
-    [HostModel.tableName]: {
+GuestModel.tableName = 'calendar.guests';
+GuestModel.schema = {
+    [GuestModel.tableName]: {
         'id': 'integer primary key',
         'external_id': 'string primary key',
         'name': 'string'
     }
 };
 
-module.exports = HostModel;
+module.exports = GuestModel;

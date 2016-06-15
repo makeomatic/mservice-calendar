@@ -1,10 +1,6 @@
 module.exports = class Model {
-    get tableName() { return this._tableName; }
-    get schema() { return this._schema; }
-    
-    constructor() {
-        this._tableName = '';
-        this._schema = {};
+    constructor(crate) {
+        this.crate = crate;
     }
 
     /**
