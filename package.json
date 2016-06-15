@@ -23,7 +23,6 @@
   "dependencies": {
     "bluebird": "^3.4.0",
     "bunyan": "^1.8.1",
-    "co": "^4.6.0",
     "ms-validation": "^2.0.0",
     "mservice": "^2.1.1",
     "node-crate": "^1.0.26"
