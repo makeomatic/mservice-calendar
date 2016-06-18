@@ -34,7 +34,7 @@ class CalendarService extends MService {
 
     /**
      * Creates tables in crate cluster.
-     * @returns {*|Promise}
+     * @returns {Promise}
      */
     migrate() {
         const worker = Promise.coroutine(function*() {
@@ -45,7 +45,7 @@ class CalendarService extends MService {
             ];
         }.bind(this));
 
-        worker();
+        return worker();
     }
 
     test() {
