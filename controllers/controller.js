@@ -1,9 +1,13 @@
 const Promise = require('bluebird');
 
+function isGenerator(f) {
+    return Object.getPrototypeOf(f) === Object.getPrototypeOf(function*() {});
+}
+
 class Controller {
     constructor(validate, crate) {
         this.validate = validate;
-        this.crate = crate;
+        this.db = crate;
 
         this.hooks = {
             'pre': {},
@@ -69,9 +73,13 @@ class Controller {
      * @returns {Promise}
      */
     wrap(data, method, unit) {
+        let normalizedUnit = unit.bind(this);
+        if (isGenerator(unit)) {
+            normalizedUnit = Promise.coroutine(normalizedUnit);
+        }
         return Promise.resolve(data)
             .then(this.run(method, 'pre'))
-            .then(unit.bind(this))
+            .then(normalizedUnit)
             .then(this.run('create', 'post'));
     }
 }

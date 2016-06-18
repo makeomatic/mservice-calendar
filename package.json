@@ -23,8 +23,11 @@
   "dependencies": {
     "bluebird": "^3.4.0",
     "bunyan": "^1.8.1",
+    "common-errors": "^0.5.7",
+    "moment-timezone": "^0.5.4",
     "ms-validation": "^2.0.0",
     "mservice": "^2.1.1",
-    "node-crate": "^1.0.26"
+    "node-crate": "^1.0.26",
+    "rrule": "^2.1.0"
   }
 }

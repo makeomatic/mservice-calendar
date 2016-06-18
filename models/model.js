@@ -1,6 +1,6 @@
 module.exports = class Model {
-    constructor(crate) {
-        this.crate = crate;
+    constructor(db) {
+        this.db = db;
     }
 
     /**
@@ -9,5 +9,11 @@ module.exports = class Model {
      */
     static initialize() {
         throw new Error('No initialization code has been provided.');
+    }
+
+    static parseResult(result) {
+        if (result.json) {
+            return result.json;
+        }
     }
 };

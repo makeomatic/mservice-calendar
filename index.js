@@ -23,12 +23,12 @@ class CalendarService extends MService {
         super(Object.assign({}, CalendarService.defaultOpts, opts));
 
         // attach data source
-        this.crate = require('node-crate');
-        this.crate.connect('localhost', 32773);
+        this.db = require('node-crate');
+        this.db.connect('localhost', 32769);
 
         // attach controllers
         this.controllers = {
-            'event': new EventController(this.validate, this.crate)
+            'event': new EventController(this.validate, this.db)
         }
     }
 
@@ -39,9 +39,9 @@ class CalendarService extends MService {
     migrate() {
         const worker = Promise.coroutine(function*() {
             return yield [
-                EventModel.migrate(this.crate),
-                HostModel.migrate(this.crate),
-                GuestModel.migrate(this.crate)
+                EventModel.migrate(this.db),
+                HostModel.migrate(this.db),
+                GuestModel.migrate(this.db)
             ];
         }.bind(this));
 
@@ -49,19 +49,9 @@ class CalendarService extends MService {
     }
 
     test() {
-        this.controllers['event'].pre('create', function (data) {
-            console.log('pre', data);
-            data['hey'] = 'hoi';
-            return data;
-        });
-        this.controllers['event'].post('create', function (data) {
-            console.log('post', data);
-            data['hoi'] = 'hey';
-            return data;
-        });
-        this.controllers['event'].create({'test': 1}).then(function (data) {
+        this.controllers['event'].create({'id': 6, 'title': 'Test event', 'description': 'Testing'}).then(function (data) {
             console.log('finish', data);
-        });
+        }).catch(e => { console.error(e); });
     }
 
     router(message, headers, actions) {
