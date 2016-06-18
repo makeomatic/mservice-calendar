@@ -1,5 +1,6 @@
 const MService = require('mservice');
 const Promise = require('bluebird');
+const Errors = require('common-errors');
 
 const EventModel = require('./models/events');
 const HostModel = require('./models/hosts');
@@ -9,13 +10,6 @@ const EventController = require('./controllers/events');
 
 const path = require('path');
 
-Promise.coroutine.addYieldHandler(function (value) {
-    if (Array.isArray(value)) return Promise.all(value.map(function (item) {
-        return Promise.resolve(item).catch(function(error) {
-            console.error(error);
-        });
-    }));
-});
 
 class CalendarService extends MService {
 
@@ -24,12 +18,19 @@ class CalendarService extends MService {
 
         // attach data source
         this.db = require('node-crate');
-        this.db.connect('localhost', 32769);
+        this.db.connect('localhost', 4200);
 
         // attach controllers
         this.controllers = {
-            'event': new EventController(this.validate, this.db)
-        }
+            'events': new EventController(this.validate, this.db)
+        };
+
+        // add coroutine handler for arrays
+        Promise.coroutine.addYieldHandler(function arrayHandler(value) {
+            if (Array.isArray(value)) return Promise.all(value.map(function (item) {
+                return Promise.resolve(item);
+            }));
+        });
     }
 
     /**
@@ -48,14 +49,33 @@ class CalendarService extends MService {
         return worker();
     }
 
-    test() {
-        this.controllers['event'].create({'id': 6, 'title': 'Test event', 'description': 'Testing'}).then(function (data) {
-            console.log('finish', data);
-        }).catch(e => { console.error(e); });
-    }
+    /**
+     * Routes messages to appropriate controllers.
+     * @param message
+     * @param headers
+     * @returns {Promise}
+     */
+    router(message, headers) {
+        if (typeof headers['routingKey'] !== typeof 'string') {
+            return Promise.reject(new Errors.NotPermitted('Invalid headers'));
+        }
+        const [_service, _controller, _action] = headers.routingKey.split('.');
+        if (_service != 'calendar') {
+            return Promise.reject(new Errors.NotPermitted('Invalid routing'));
+        }
 
-    router(message, headers, actions) {
-        // read more about params in makeomatic/ms-amqp-transport
+        if (this.controllers.hasOwnProperty(_controller)) {
+            const controller = this.controllers[_controller];
+            const action = controller[_action];
+
+            if (typeof action == 'function') {
+                return action.call(controller, message);
+            } else {
+                return Promise.reject(new Errors.Argument('Invalid action'));
+            }
+        } else {
+            return Promise.reject(new Errors.Argument('Invalid controller'));
+        }
     }
 
 }
