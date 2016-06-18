@@ -4,7 +4,7 @@
   "description": "Calendar microservice",
   "main": "index.js",
   "scripts": {
-    "test": "npm test"
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/**/*"
   },
   "repository": {
     "type": "git",
@@ -29,5 +29,9 @@
     "mservice": "^2.1.1",
     "node-crate": "^1.0.26",
     "rrule": "^2.1.0"
+  },
+  "devDependencies": {
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3"
   }
 }

@@ -33,4 +33,9 @@ describe('Events Suite', function EventsSuite() {
         it('Delete nothing on non-matching query');
         it('Delete by query');
     });
+
+    describe('Hooks', function EventHooksSuite() {
+        it('Pre-hook successfully called');
+        it('Post-hook successfully called');
+    });
 });
