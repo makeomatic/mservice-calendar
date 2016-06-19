@@ -8,7 +8,11 @@ describe('Events Suite', function EventsSuite() {
     const service = new Calendar({ namespace: 'test_calendar' });
 
     const createHeaders = {routingKey: 'calendar.events.create'};
-    
+    const updateHeaders = {routingKey: 'calendar.events.update'};
+    const deleteHeaders = {routingKey: 'calendar.events.remove'};
+    const listHeaders = {routingKey: 'calendar.events.list'};
+    const singleHeaders = {routingKey: 'calendar.events.single'};
+
     before('Migrate table', () => {
         return service.migrate();
     });
@@ -120,16 +124,73 @@ describe('Events Suite', function EventsSuite() {
     });
 
     describe('Update', function EventUpdateSuite() {
-        it('Successful update');
-        it('Fail on invalid schema');
-        it('Fail for non-existent id');
+        it('Successful update', () => {
+            return service.router({
+                id: 1,
+                description: 'Updated description'
+            }, updateHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                    assert(result.value().data.description, 'Updated description');
+                });
+        });
+        it('Fail on invalid schema', () => {
+            return service.router({
+                id: 1,
+                description: 'Updated description',
+                wrong: 'field'
+            }, updateHeaders)
+                .reflect()
+                .then(result => {
+                    assert(result.isRejected());
+                });
+        });
+        it('Fail on missing id', () => {
+            return service.router({
+                description: 'Updated description'
+            }, updateHeaders)
+                .reflect()
+                .then(result => {
+                    assert(result.isRejected());
+                });
+        });
+        it('Fail for non-existent id', () => {
+            return service.router({
+                id: 10,
+                description: 'Updated description'
+            }, updateHeaders)
+                .reflect()
+                .then(result => {
+                    assert(result.isRejected());
+                });
+        });
     });
 
     describe('List', function EventListSuite() {
-        it('Return single record');
+        it('Return single record', () => {
+            return service.router({
+                id: 1
+            }, singleHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                    assert(result.value().data.title, 'Test event 1');
+                });
+        });
         it('Return empty list for non-matching query');
         it('Return list');
-        it('Fail to return single record for non-existent id');
+        it('Fail to return single record for non-existent id', () => {
+            return service.router({
+                id: 10
+            }, singleHeaders)
+                .reflect()
+                .then(result => {
+                    assert(result.isRejected());
+                });
+        });
         it('Fail to return list on invalid query');
     });
 

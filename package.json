@@ -24,6 +24,7 @@
     "bluebird": "^3.4.0",
     "bunyan": "^1.8.1",
     "common-errors": "^0.5.7",
+    "lodash": "^4.13.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "ms-validation": "^2.0.0",

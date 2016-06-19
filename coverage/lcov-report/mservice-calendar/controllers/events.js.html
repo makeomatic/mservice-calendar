@@ -20,24 +20,24 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">88.57% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>19/19</span>
+        <span class='fraction'>31/35</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">83.33% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>6/6</span>
+        <span class='fraction'>10/12</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">42.86% </span>
+        <span class="strong">70% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>3/7</span>
+        <span class='fraction'>7/10</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">88.57% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>19/19</span>
+        <span class='fraction'>31/35</span>
       </div>
     </div>
   </div>
@@ -99,7 +99,29 @@
 54
 55
 56
-57</td><td class="line-coverage quiet"><span class="cline-any cline-yes">1×</span>
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79</td><td class="line-coverage quiet"><span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -133,12 +155,25 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
 <span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -147,10 +182,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -188,26 +232,48 @@ class EventController extends Controller {
                 }
             }
 &nbsp;
+            <span class="missing-if-branch" title="else path not taken" >E</span>if (data.tags === undefined) {
+                data.tags = [];
+            }
+&nbsp;
             const validated = yield this.validate('event', data);
             const instance = new EventModel(this.db, validated);
             return yield instance.save();
         });
     }
 &nbsp;
-    update<span class="fstat-no" title="function not covered" >() {</span>
+    update(data) {
+        return this.wrap(data, 'update', function* updateUnit(data) {
+            if (data.id === undefined) {
+                throw new Errors.Argument('Instance ID must be provided');
+            }
 &nbsp;
+            const validated = yield this.validate('event.update', data);
+            const instance = yield EventModel.single(this.db, validated.id);
+            instance.data = validated;
+            return yield instance.save();
+        });
     }
 &nbsp;
     remove<span class="fstat-no" title="function not covered" >() {</span>
 &nbsp;
     }
 &nbsp;
-    list<span class="fstat-no" title="function not covered" >() {</span>
-&nbsp;
+    list<span class="fstat-no" title="function not covered" >(data) {</span>
+<span class="cstat-no" title="statement not covered" >        return this.wrap(data, 'list', <span class="fstat-no" title="function not covered" >function* singleUnit(data) {</span></span>
+<span class="cstat-no" title="statement not covered" >            const validated = yield this.validate('list', data);</span>
+<span class="cstat-no" title="statement not covered" >            return yield EventModel.filter(this.db, validated);</span>
+        });
     }
 &nbsp;
-    single<span class="fstat-no" title="function not covered" >() {</span>
+    single(data) {
+        return this.wrap(data, 'single', function* singleUnit(data) {
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (data.id === undefined) {
+<span class="cstat-no" title="statement not covered" >                throw new Errors.Argument('Instance ID must be provided');</span>
+            }
 &nbsp;
+            return yield EventModel.single(this.db, data.id);
+        });
     }
 }
 &nbsp;
@@ -217,7 +283,7 @@ module.exports = EventController;</pre></td></tr>
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 19 2016 17:02:42 GMT+0800 (IRKT)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Jun 20 2016 03:15:23 GMT+0800 (IRKT)
 </div>
 </div>
 <script src="../../prettify.js"></script>

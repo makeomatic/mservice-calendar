@@ -31,26 +31,48 @@ class EventController extends Controller {
                 }
             }
 
+            if (data.tags === undefined) {
+                data.tags = [];
+            }
+
             const validated = yield this.validate('event', data);
             const instance = new EventModel(this.db, validated);
             return yield instance.save();
         });
     }
 
-    update() {
+    update(data) {
+        return this.wrap(data, 'update', function* updateUnit(data) {
+            if (data.id === undefined) {
+                throw new Errors.Argument('Instance ID must be provided');
+            }
 
+            const validated = yield this.validate('event.update', data);
+            const instance = yield EventModel.single(this.db, validated.id);
+            instance.data = validated;
+            return yield instance.save();
+        });
     }
 
     remove() {
 
     }
 
-    list() {
-
+    list(data) {
+        return this.wrap(data, 'list', function* singleUnit(data) {
+            const validated = yield this.validate('list', data);
+            return yield EventModel.filter(this.db, validated);
+        });
     }
 
-    single() {
+    single(data) {
+        return this.wrap(data, 'single', function* singleUnit(data) {
+            if (data.id === undefined) {
+                throw new Errors.Argument('Instance ID must be provided');
+            }
 
+            return yield EventModel.single(this.db, data.id);
+        });
     }
 }
 

@@ -1,0 +1,15 @@
+{
+  "id": "event.update",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "title": { "type": "string", "minLength": 3 },
+    "description": { "type": "string", "minLength": 3 },
+    "tags": { "type": "array", "items": { "type": "string", "minLength": 3 } },
+    "rrule": { "type": "string", "minLength": 3 },
+    "recurring": { "type": "boolean", "default": false },
+    "start_time": { "type": "integer" },
+    "end_time": { "type": "integer" }
+  },
+  "additionalProperties": false
+}
