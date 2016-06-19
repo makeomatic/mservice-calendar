@@ -20,9 +20,9 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">90% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>9/10</span>
+        <span class='fraction'>14/14</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -30,14 +30,14 @@
         <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">66.67% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/3</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">90% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>9/10</span>
+        <span class='fraction'>14/14</span>
       </div>
     </div>
   </div>
@@ -92,7 +92,12 @@
 47
 48
 49
-50</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+50
+51
+52
+53
+54
+55</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -108,29 +113,34 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,8 +169,8 @@ class EventModel extends Model {
     constructor(db, data) {
         super(db);
 &nbsp;
-        this.tableName = EventModel.tableName;
-        this.schema = EventModel.schema;
+        this.tableName = this.db._namespace + '.' + EventModel.tableName;
+        this.schema = {[this.tableName]: EventModel.schema};
 &nbsp;
         // TODO: process data (set some internal variables, etc)
         this.data = data;
@@ -170,24 +180,29 @@ class EventModel extends Model {
         // TODO: accommodate for update
         return this.db.insert(this.tableName, this.data).then(Model.parseResult);
     }
+&nbsp;
+    static migrate(db) {
+        const tableName = db._namespace + '.' + EventModel.tableName;
+        const schema = {[tableName]: EventModel.schema};
+        return db.create(schema);
+    }
     
-    static migrate<span class="fstat-no" title="function not covered" >(crate) {</span>
-<span class="cstat-no" title="statement not covered" >        return crate.create(EventModel.schema);</span>
+    static cleanup(db) {
+        const tableName = db._namespace + '.' + EventModel.tableName;
+        return db.drop(tableName);
     }
 }
 &nbsp;
-EventModel.tableName = 'calendar.events';
+EventModel.tableName = 'events';
 EventModel.schema = {
-    [EventModel.tableName]: {
-        'id'          : 'integer primary key', // unique event ID
-        'title'       : 'string',              // event title
-        'description' : 'string',              // event description
-        'tags'        : 'array(string)',       // list of categories
-        'rrule'       : 'string',              // recurring rule
-        'recurring'   : 'boolean',             // true for recurring event
-        'start_time'  : 'timestamp',           // event start time
-        'end_time'    : 'timestamp'            // event end time
-    }
+    'id': 'integer primary key', // unique event ID
+    'title': 'string',              // event title
+    'description': 'string',              // event description
+    'tags': 'array(string)',       // list of categories
+    'rrule': 'string',              // recurring rule
+    'recurring': 'boolean',             // true for recurring event
+    'start_time': 'timestamp',           // event start time
+    'end_time': 'timestamp'            // event end time
 };
 &nbsp;
 module.exports = EventModel;</pre></td></tr>
@@ -196,7 +211,7 @@ module.exports = EventModel;</pre></td></tr>
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 19 2016 02:32:19 GMT+0800 (IRKT)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Jun 19 2016 17:02:42 GMT+0800 (IRKT)
 </div>
 </div>
 <script src="../../prettify.js"></script>

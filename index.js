@@ -13,12 +13,18 @@ const path = require('path');
 
 class CalendarService extends MService {
 
+    /**
+     * Construct service.
+     * @param opts {Object}
+     * @param opts.namespace {string} Namespace for tables. Default is 'calendar'.
+     */
     constructor(opts = {}) {
         super(Object.assign({}, CalendarService.defaultOpts, opts));
 
         // attach data source
         this.db = require('node-crate');
         this.db.connect('localhost', 4200);
+        this.db._namespace = opts.namespace || 'calendar';
 
         // attach controllers
         this.controllers = {
@@ -43,6 +49,22 @@ class CalendarService extends MService {
                 EventModel.migrate(this.db),
                 HostModel.migrate(this.db),
                 GuestModel.migrate(this.db)
+            ];
+        }.bind(this));
+
+        return worker();
+    }
+
+    /**
+     * Drops tables in crate cluster. Careful here!
+     * @returns {Promise}
+     */
+    cleanup() {
+        const worker = Promise.coroutine(function* () {
+            return yield [
+                EventModel.cleanup(this.db),
+                HostModel.cleanup(this.db),
+                GuestModel.cleanup(this.db)
             ];
         }.bind(this));
 

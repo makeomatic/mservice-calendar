@@ -16,8 +16,8 @@ class EventModel extends Model {
     constructor(db, data) {
         super(db);
 
-        this.tableName = EventModel.tableName;
-        this.schema = EventModel.schema;
+        this.tableName = this.db._namespace + '.' + EventModel.tableName;
+        this.schema = {[this.tableName]: EventModel.schema};
 
         // TODO: process data (set some internal variables, etc)
         this.data = data;
@@ -27,24 +27,29 @@ class EventModel extends Model {
         // TODO: accommodate for update
         return this.db.insert(this.tableName, this.data).then(Model.parseResult);
     }
+
+    static migrate(db) {
+        const tableName = db._namespace + '.' + EventModel.tableName;
+        const schema = {[tableName]: EventModel.schema};
+        return db.create(schema);
+    }
     
-    static migrate(crate) {
-        return crate.create(EventModel.schema);
+    static cleanup(db) {
+        const tableName = db._namespace + '.' + EventModel.tableName;
+        return db.drop(tableName);
     }
 }
 
-EventModel.tableName = 'calendar.events';
+EventModel.tableName = 'events';
 EventModel.schema = {
-    [EventModel.tableName]: {
-        'id'          : 'integer primary key', // unique event ID
-        'title'       : 'string',              // event title
-        'description' : 'string',              // event description
-        'tags'        : 'array(string)',       // list of categories
-        'rrule'       : 'string',              // recurring rule
-        'recurring'   : 'boolean',             // true for recurring event
-        'start_time'  : 'timestamp',           // event start time
-        'end_time'    : 'timestamp'            // event end time
-    }
+    'id': 'integer primary key', // unique event ID
+    'title': 'string',              // event title
+    'description': 'string',              // event description
+    'tags': 'array(string)',       // list of categories
+    'rrule': 'string',              // recurring rule
+    'recurring': 'boolean',             // true for recurring event
+    'start_time': 'timestamp',           // event start time
+    'end_time': 'timestamp'            // event end time
 };
 
 module.exports = EventModel;
