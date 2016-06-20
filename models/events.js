@@ -54,7 +54,7 @@ class EventModel extends Model {
 
     static single(db, id) {
         const tableName = db._namespace + '.' + EventModel.tableName;
-        return db.execute(`select * from ${tableName} where id = ?`, [id]).then((result) => {
+        return db.execute(`select * from ${tableName} where id = ? limit 1`, [id]).then((result) => {
             if (result.json.length == 1) {
                 return new EventModel(db, result.json[0]).old();
             } else {
@@ -63,9 +63,10 @@ class EventModel extends Model {
         });
     }
 
-    static filter(db, where) {
+    static filter(db, filter) {
         const tableName = db._namespace + '.' + EventModel.tableName;
-        return db.execute(`select * from ${tableName} where ?`, [where]).then((result) => {
+        const query = Model.createFilter(filter, tableName);
+        return db.execute(query[0], query[1]).then((result) => {
             return result.json.map((item) => {
                 return new EventModel(db, item).old();
             });

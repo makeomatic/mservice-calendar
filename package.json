@@ -4,7 +4,8 @@
   "description": "Calendar microservice",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/**/* && ./node_modules/.bin/codecov -t e497ca34-627a-42e6-8c9c-f2ba043f5026"
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/**/*",
+    "coverage": "./node_modules/.bin/codecov -t e497ca34-627a-42e6-8c9c-f2ba043f5026"
   },
   "repository": {
     "type": "git",

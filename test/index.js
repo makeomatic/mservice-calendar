@@ -3,7 +3,7 @@ const assert = require('assert');
 
 describe('Functionality suite', function FunctionalitySuite() {
     const Calendar = require('../index');
-    const service = new Calendar();
+    const service = new Calendar({ namespace: 'test_calendar' });
 
     it('Should fail on invalid route', () => {
         return service.router({}, { routingKey: 'files.test.test' })

@@ -20,10 +20,10 @@ class CalendarService extends MService {
      */
     constructor(opts = {}) {
         super(Object.assign({}, CalendarService.defaultOpts, opts));
-
+        
         // attach data source
         this.db = require('node-crate');
-        this.db.connect('localhost', 4200);
+        this.db.connect('http://localhost:4200');
         this.db._namespace = opts.namespace || 'calendar';
 
         // attach controllers

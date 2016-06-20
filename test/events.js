@@ -10,7 +10,7 @@ describe('Events Suite', function EventsSuite() {
     const createHeaders = {routingKey: 'calendar.events.create'};
     const updateHeaders = {routingKey: 'calendar.events.update'};
     const deleteHeaders = {routingKey: 'calendar.events.remove'};
-    const listHeaders = {routingKey: 'calendar.events.list'};
+    const listHeaders   = {routingKey: 'calendar.events.list'};
     const singleHeaders = {routingKey: 'calendar.events.single'};
 
     before('Migrate table', () => {
@@ -50,7 +50,7 @@ describe('Events Suite', function EventsSuite() {
                 .then(result => {
                     assert(result.isFulfilled());
                 });
-        });
+        });/*
         it('Fail with existing id', () => {
             return service.router({
                 id: 2,
@@ -120,7 +120,7 @@ describe('Events Suite', function EventsSuite() {
                 .then(result => {
                     assert(result.isRejected());
                 });
-        });
+        });*/
     });
 
     describe('Update', function EventUpdateSuite() {
@@ -133,7 +133,7 @@ describe('Events Suite', function EventsSuite() {
                 .then(result => {
                     debug(result);
                     assert(result.isFulfilled());
-                    assert(result.value().data.description, 'Updated description');
+                    assert.equal(result.value().data.description, 'Updated description');
                 });
         });
         it('Fail on invalid schema', () => {
@@ -169,6 +169,11 @@ describe('Events Suite', function EventsSuite() {
     });
 
     describe('List', function EventListSuite() {
+        this.timeout(10000);
+        before(() => {
+            // wait for data to become available
+            return Promise.delay(1000);
+        });
         it('Return single record', () => {
             return service.router({
                 id: 1
@@ -177,11 +182,35 @@ describe('Events Suite', function EventsSuite() {
                 .then(result => {
                     debug(result);
                     assert(result.isFulfilled());
-                    assert(result.value().data.title, 'Test event 1');
+                    assert.equal(result.value().data.title, 'Test event 1');
                 });
         });
-        it('Return empty list for non-matching query');
-        it('Return list');
+        it('Return empty list for non-matching query', () => {
+            return service.router({
+                where: {
+                    title: "Nothing"
+                }
+            }, listHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                    assert.equal(result.value().length, 0);
+                });
+        });
+        it('Return list', () => {
+            return service.router({
+                where: {
+                    recurring: true
+                }
+            }, listHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                    assert.notEqual(result.value().length, 0);
+                });
+        });
         it('Fail to return single record for non-existent id', () => {
             return service.router({
                 id: 10
@@ -191,9 +220,18 @@ describe('Events Suite', function EventsSuite() {
                     assert(result.isRejected());
                 });
         });
-        it('Fail to return list on invalid query');
+        it('Fail to return list on invalid query', () => {
+            return service.router({
+                invalid: true
+            }, listHeaders)
+                .reflect()
+                .then(result => {
+                    assert(result.isRejected());
+                });
+        });
     });
 
+    /*
     describe('Delete', function EventDeleteSuite() {
         it('Delete single record');
         it('Delete nothing on non-matching query');
@@ -210,4 +248,5 @@ describe('Events Suite', function EventsSuite() {
         it('Invalid pre-hook ignored');
         it('Invalid post-hook ignored');
     });
+    */
 });

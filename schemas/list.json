@@ -1,0 +1,8 @@
+{
+  "id": "list",
+  "type": "object",
+  "required": ["where"],
+  "properties": {
+    "where": { "type": "object" }
+  }
+}
