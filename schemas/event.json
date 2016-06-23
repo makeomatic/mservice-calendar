@@ -1,7 +1,7 @@
 {
   "id": "event",
   "type": "object",
-  "required": ["title", "description", "recurring"],
+  "required": ["id", "title", "description", "recurring"],
   "properties": {
     "id": { "type": "integer" },
     "title": { "type": "string", "minLength": 3 },

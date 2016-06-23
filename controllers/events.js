@@ -14,29 +14,26 @@ class EventController extends Controller {
 
     create(data) {
         return this.wrap(data, 'create', function* createUnit(data) {
-            if (data.id === undefined) {
-                throw new Errors.Argument('New instance ID must be provided');
-            }
+            const validated = yield this.validate('event', data);
 
-            if (data.recurring) {
+            if (validated.recurring) {
                 // if missing rrule, throw
-                if (data.rrule === undefined) {
+                if (validated.rrule === undefined) {
                     throw new Errors.Argument('Recurring rules require rrule attribute');
                 }
 
                 // parse rrule to see if it's correct
                 try {
-                    RRule.parseString(data.rrule);
+                    RRule.parseString(validated.rrule);
                 } catch (e) {
                     throw new Errors.Argument('Invalid rrule', e);
                 }
             }
 
-            if (data.tags === undefined) {
-                data.tags = [];
+            if (validated.tags === undefined) {
+                validated.tags = [];
             }
-
-            const validated = yield this.validate('event', data);
+            
             const instance = new EventModel(this.db, validated);
             return yield instance.save();
         });
@@ -44,10 +41,6 @@ class EventController extends Controller {
 
     update(data) {
         return this.wrap(data, 'update', function* updateUnit(data) {
-            if (data.id === undefined) {
-                throw new Errors.Argument('Instance ID must be provided');
-            }
-
             const validated = yield this.validate('event.update', data);
             const instance = yield Model.single(this.db, EventModel, validated.id);
             instance.data = validated;
@@ -57,14 +50,16 @@ class EventController extends Controller {
 
     remove(data) {
         return this.wrap(data, 'remove', function* removeUnit(data) {
-            if (data.id === undefined && data.where === undefined) {
+            const validated = yield this.validate('delete', data);
+            
+            if (validated.id === undefined && validated.where === undefined) {
                 throw new Errors.Argument('Instance ID or filter must be provided');
             }
 
-            if (data.id) {
-                return yield Model.remove(this.db, EventModel, { where: { id: data.id } })
+            if (validated.id) {
+                return yield Model.remove(this.db, EventModel, { where: { id: validated.id } })
             } else {
-                return yield Model.remove(this.db, EventModel, data)
+                return yield Model.remove(this.db, EventModel, validated)
             }
         });
     }

@@ -1,8 +1,8 @@
 {
-  "id": "list",
+  "id": "delete",
   "type": "object",
-  "required": ["where"],
   "properties": {
+    "id": { "type": "number" },
     "where": { "type": "object" }
   },
   "additionalProperties": false

@@ -1,6 +1,7 @@
 {
   "id": "event.update",
   "type": "object",
+  "required": ["id"],
   "properties": {
     "id": { "type": "integer" },
     "title": { "type": "string", "minLength": 3 },
