@@ -1,5 +1,6 @@
 const Controller = require('./controller');
 
+const Model = require('../models/model');
 const EventModel = require('../models/events');
 
 const Promise = require('bluebird');
@@ -48,20 +49,30 @@ class EventController extends Controller {
             }
 
             const validated = yield this.validate('event.update', data);
-            const instance = yield EventModel.single(this.db, validated.id);
+            const instance = yield Model.single(this.db, EventModel, validated.id);
             instance.data = validated;
             return yield instance.save();
         });
     }
 
-    remove() {
+    remove(data) {
+        return this.wrap(data, 'remove', function* removeUnit(data) {
+            if (data.id === undefined && data.where === undefined) {
+                throw new Errors.Argument('Instance ID or filter must be provided');
+            }
 
+            if (data.id) {
+                return yield Model.remove(this.db, EventModel, { where: { id: data.id } })
+            } else {
+                return yield Model.remove(this.db, EventModel, data)
+            }
+        });
     }
 
     list(data) {
         return this.wrap(data, 'list', function* singleUnit(data) {
             const validated = yield this.validate('list', data);
-            return yield EventModel.filter(this.db, validated);
+            return yield Model.filter(this.db, EventModel, validated);
         });
     }
 
@@ -71,7 +82,7 @@ class EventController extends Controller {
                 throw new Errors.Argument('Instance ID must be provided');
             }
 
-            return yield EventModel.single(this.db, data.id);
+            return yield Model.single(this.db, EventModel, data.id);
         });
     }
 }

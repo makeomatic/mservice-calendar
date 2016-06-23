@@ -2,6 +2,7 @@ const MService = require('mservice');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 
+const Model = require('./models/model');
 const EventModel = require('./models/events');
 const HostModel = require('./models/hosts');
 const GuestModel = require('./models/guests');
@@ -19,12 +20,12 @@ class CalendarService extends MService {
      * @param opts.namespace {string} Namespace for tables. Default is 'calendar'.
      */
     constructor(opts = {}) {
-        super(Object.assign({}, CalendarService.defaultOpts, opts));
-        
+        super(Object.assign({crate: {}}, CalendarService.defaultOpts, opts));
+
         // attach data source
         this.db = require('node-crate');
-        this.db.connect('http://localhost:4200');
-        this.db._namespace = opts.namespace || 'calendar';
+        this.db.connect(this.config.crate.connectionString || 'http://localhost:4200');
+        this.db._namespace = this.config.crate.namespace || 'calendar';
 
         // attach controllers
         this.controllers = {
@@ -46,9 +47,9 @@ class CalendarService extends MService {
     migrate() {
         const worker = Promise.coroutine(function*() {
             return yield [
-                EventModel.migrate(this.db),
-                HostModel.migrate(this.db),
-                GuestModel.migrate(this.db)
+                Model.migrate(this.db, EventModel),
+                Model.migrate(this.db, HostModel),
+                Model.migrate(this.db, GuestModel)
             ];
         }.bind(this));
 
@@ -62,9 +63,9 @@ class CalendarService extends MService {
     cleanup() {
         const worker = Promise.coroutine(function* () {
             return yield [
-                EventModel.cleanup(this.db),
-                HostModel.cleanup(this.db),
-                GuestModel.cleanup(this.db)
+                Model.cleanup(this.db, EventModel),
+                Model.cleanup(this.db, HostModel),
+                Model.cleanup(this.db, GuestModel)
             ];
         }.bind(this));
 

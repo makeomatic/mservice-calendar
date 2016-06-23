@@ -3,9 +3,41 @@ const join = require('lodash/join');
 const concat = require('lodash/concat');
 const moment = require('moment-timezone');
 
+const Promise = require('bluebird');
+const Errors = require('common-errors');
+const omitBy = require('lodash/omitby');
+
 module.exports = class Model {
-    constructor(db) {
+    get data() { return this._data; }
+    set data(obj) {
+        this._data = Object.assign(this._data, obj);
+        this._dirty = true;
+    }
+
+    constructor(db, data) {
         this.db = db;
+
+        this._data = data;
+        this._newInstance = true;
+    }
+
+    save() {
+        if (this._newInstance) {
+            this._newInstance = false;
+            return Promise.resolve(this.db.insert(this.tableName, this.data)).return(this);
+        } else if (this._dirty) {
+            this._dirty = false;
+            const update = omitBy(this._data, (value, key) => (key == 'id' || value === null));
+            const query = this.createUpdate(update, this.tableName, this._data.id);
+            return Promise.resolve(this.db.execute(query)).return(this);
+        } else {
+            return Promise.resolve(this);
+        }
+    }
+
+    old() {
+        this._newInstance = false;
+        return this;
     }
 
     createUpdate(update, tableName, id) {
@@ -39,8 +71,8 @@ module.exports = class Model {
         }
     };
     
-    static createFilter(filter, tableName) {
-        const where = reduce(
+    static createFilter(filter) {
+        return reduce(
             filter.where,
             (result, value, key) => {
                 let operator = '=';
@@ -58,7 +90,9 @@ module.exports = class Model {
             },
             {command: [], arguments: []}
         );
+    }
 
+    static createSelect(tableName, where) {
         let base = `select * from ${tableName}`;
         if (where.command.length > 0) {
             base += ` where ${join(where.command, ',')}`;
@@ -67,17 +101,56 @@ module.exports = class Model {
         return [base, where.arguments];
     }
 
-    /**
-     * Initialize table.
-     * @returns {Promise}
-     */
-    static initialize() {
-        throw new Error('No initialization code has been provided.');
+    static createDelete(tableName, where) {
+        let base = `delete from ${tableName}`;
+        if (where.command.length > 0) {
+            base += ` where ${join(where.command, ',')}`;
+        }
+
+        return [base, where.arguments];
     }
 
-    static parseResult(result) {
-        if (result.json) {
-            return result.json;
-        }
+    static single(db, klass, id) {
+        const tableName = db._namespace + '.' + klass.tableName;
+        return db.execute(`select * from ${tableName} where id = ? limit 1`, [id]).then((result) => {
+            if (result.json.length == 1) {
+                return new klass(db, result.json[0]).old();
+            } else {
+                throw new Errors.Argument('Object with specified ID not found');
+            }
+        });
+    }
+
+    static filter(db, klass, filter) {
+        const tableName = db._namespace + '.' + klass.tableName;
+        const where = Model.createFilter(filter);
+        const query = Model.createSelect(tableName, where);
+        return db.execute(query[0], query[1]).then((result) => {
+            return result.json.map((item) => {
+                return new klass(db, item).old();
+            });
+        });
+    }
+
+    static remove(db, klass, filter) {
+        const tableName = db._namespace + '.' + klass.tableName;
+        const where = Model.createFilter(filter);
+        const query = Model.createDelete(tableName, where);
+        return db.execute(query[0], query[1]).then((result) => {
+            // sadly, rowcount means nothing for delete queries, just ignore it :(
+            const rowcount = result.rowcount || 0;
+            return rowcount >= 0 ? rowcount : 0;
+        });
+    }
+
+    static migrate(db, klass) {
+        const tableName = db._namespace + '.' + klass.tableName;
+        const schema = {[tableName]: klass.schema};
+        return db.create(schema);
+    }
+
+    static cleanup(db, klass) {
+        const tableName = db._namespace + '.' + klass.tableName;
+        return db.drop(tableName);
     }
 };

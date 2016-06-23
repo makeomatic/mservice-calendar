@@ -1,16 +1,16 @@
 const Promise = require('bluebird');
 const assert = require('assert');
 const moment = require('moment-timezone');
-const { debug } = require('../utils');
+const {debug} = require('../utils');
 
 describe('Events Suite', function EventsSuite() {
     const Calendar = require('../index');
-    const service = new Calendar({ namespace: 'test_calendar' });
+    const service = new Calendar({crate: {namespace: 'test_calendar'}});
 
     const createHeaders = {routingKey: 'calendar.events.create'};
     const updateHeaders = {routingKey: 'calendar.events.update'};
     const deleteHeaders = {routingKey: 'calendar.events.remove'};
-    const listHeaders   = {routingKey: 'calendar.events.list'};
+    const listHeaders = {routingKey: 'calendar.events.list'};
     const singleHeaders = {routingKey: 'calendar.events.single'};
 
     before('Migrate table', () => {
@@ -20,7 +20,7 @@ describe('Events Suite', function EventsSuite() {
     after('Cleanup table', () => {
         return service.cleanup();
     });
-    
+
     describe('Create', function EventCreateSuite() {
         it('Success one-time event', () => {
             return service.router({
@@ -50,7 +50,8 @@ describe('Events Suite', function EventsSuite() {
                 .then(result => {
                     assert(result.isFulfilled());
                 });
-        });/*
+        });
+
         it('Fail with existing id', () => {
             return service.router({
                 id: 2,
@@ -120,7 +121,7 @@ describe('Events Suite', function EventsSuite() {
                 .then(result => {
                     assert(result.isRejected());
                 });
-        });*/
+        });
     });
 
     describe('Update', function EventUpdateSuite() {
@@ -231,22 +232,51 @@ describe('Events Suite', function EventsSuite() {
         });
     });
 
-    /*
     describe('Delete', function EventDeleteSuite() {
-        it('Delete single record');
-        it('Delete nothing on non-matching query');
-        it('Delete by query');
-        it('Fail to delete single on invalid id');
-        it('Fail to delete on invalid query');
+        it('Delete single record', () => {
+            return service.router({
+                id: 1
+            }, deleteHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                });
+        });
+        it('Delete nothing on non-matching query', () => {
+            return service.router({
+                where: {
+                    'id': ['>', 100]
+                }
+            }, deleteHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                });
+        });
+        it('Delete by query', () => {
+            return service.router({
+                where: {
+                    'id': ['>', 1]
+                }
+            }, deleteHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
+                });
+        });
+        it('Fail to delete on invalid query', () => {
+            return service.router({
+                invalid: {
+                    'id': ['>', 1]
+                }
+            }, deleteHeaders)
+                .reflect()
+                .then(result => {
+                    assert(result.isRejected());
+                });
+        });
     });
-
-    describe('Hooks', function EventHooksSuite() {
-        it('Pre-hook successfully called');
-        it('Post-hook successfully called');
-        it('Pre-hook removed');
-        it('Post-hook removed');
-        it('Invalid pre-hook ignored');
-        it('Invalid post-hook ignored');
-    });
-    */
 });

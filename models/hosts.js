@@ -6,20 +6,6 @@ class HostModel extends Model {
 
         this.tableName = this.db._namespace + '.' + HostModel.tableName;
         this.schema = {[this.tableName]: HostModel.schema};
-
-        // TODO: process data (set some internal variables, etc)
-        this.data = data;
-    }
-
-    static migrate(db) {
-        const tableName = db._namespace + '.' + HostModel.tableName;
-        const schema = {[tableName]: HostModel.schema};
-        return db.create(schema);
-    }
-
-    static cleanup(db) {
-        const tableName = db._namespace + '.' + HostModel.tableName;
-        return db.drop(tableName);
     }
 }
 
