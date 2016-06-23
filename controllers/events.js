@@ -80,6 +80,14 @@ class EventController extends Controller {
             return yield Model.single(this.db, EventModel, data.id);
         });
     }
+
+    calendar(data) {
+        return this.wrap(data, 'calendar', function* calendarUnit(data) {
+            const validated = yield this.validate('calendar', data);
+            const events = yield this.list({where: {}}); // select all events
+
+        });
+    }
 }
 
 module.exports = EventController;

@@ -1,0 +1,10 @@
+{
+  "id": "delete",
+  "type": "object",
+  "required": ["start", "end"],
+  "properties": {
+    "start": { "type": "number" },
+    "end": { "type": "number" }
+  },
+  "additionalProperties": false
+}
