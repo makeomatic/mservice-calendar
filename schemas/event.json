@@ -1,16 +1,23 @@
 {
   "id": "event",
   "type": "object",
-  "required": ["id", "title", "description", "recurring"],
+  "required": ["id", "owner", "title", "description", "recurring", "start_time", "end_time", "timezone"],
   "properties": {
-    "id": { "type": "integer" },
+    "id": { "type": "string", "minLength": 1 },
+    "owner": { "type": "string", "minLength": 1 },
+    "hosts": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "subscribers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "notifications": { "type": "array", "items": { "type": "string", "minLength": 1 } },
     "title": { "type": "string", "minLength": 3 },
     "description": { "type": "string", "minLength": 3 },
+    "picture": { "type": "string", "minLength": 3 },
+    "link": { "type": "string", "minLength": 3 },
     "tags": { "type": "array", "items": { "type": "string", "minLength": 3 } },
     "rrule": { "type": "string", "minLength": 3 },
     "recurring": { "type": "boolean", "default": false },
     "start_time": { "type": "integer" },
-    "end_time": { "type": "integer" }
+    "end_time": { "type": "integer" },
+    "timezone": { "type": "string", "minLength": 1 }
   },
   "additionalProperties": false
 }

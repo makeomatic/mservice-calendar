@@ -6,25 +6,22 @@ const moment = require('moment-timezone');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const omitBy = require('lodash/omitby');
+const assign = require('lodash/assign');
 
-module.exports = class Model {
-    get data() { return this._data; }
-    set data(obj) {
-        this._data = Object.assign(this._data, obj);
-        this._dirty = true;
-    }
-
+class Model {
     constructor(db, data) {
         this.db = db;
 
         this._data = data;
+        this._dirty = true;
         this._newInstance = true;
     }
 
     save() {
         if (this._newInstance) {
             this._newInstance = false;
-            return Promise.resolve(this.db.insert(this.tableName, this.data)).return(this);
+            this._dirty = false;
+            return Promise.resolve(this.db.insert(this.tableName, this._data)).return(this);
         } else if (this._dirty) {
             this._dirty = false;
             const update = omitBy(this._data, (value, key) => (key == 'id' || value === null));
@@ -33,6 +30,10 @@ module.exports = class Model {
         } else {
             return Promise.resolve(this);
         }
+    }
+
+    update(data) {
+        this._data = assign({}, this._data, data);
     }
 
     old() {
@@ -110,11 +111,15 @@ module.exports = class Model {
         return [base, where.arguments];
     }
 
+    static create(db, klass, data) {
+        return new Proxy(new klass(db, data), Model.Proxy);
+    }
+
     static single(db, klass, id) {
         const tableName = db._namespace + '.' + klass.tableName;
         return db.execute(`select * from ${tableName} where id = ? limit 1`, [id]).then((result) => {
             if (result.json.length == 1) {
-                return new klass(db, result.json[0]).old();
+                return new Proxy(new klass(db, result.json[0]).old(), Model.Proxy);
             } else {
                 throw new Errors.Argument('Object with specified ID not found');
             }
@@ -127,7 +132,7 @@ module.exports = class Model {
         const query = Model.createSelect(tableName, where);
         return db.execute(query[0], query[1]).then((result) => {
             return result.json.map((item) => {
-                return new klass(db, item).old();
+                return new Proxy(new klass(db, item).old(), Model.Proxy);
             });
         });
     }
@@ -153,4 +158,28 @@ module.exports = class Model {
         const tableName = db._namespace + '.' + klass.tableName;
         return db.drop(tableName);
     }
+}
+
+Model.Proxy = {
+    get: function(target, name) {
+        if (target[name]) return target[name];
+        return name in target._data ? target._data[name] : null;
+    },
+
+    set: function(target, name, value) {
+        if (target[name]) {
+            target[name] = value;
+            return true;
+        }
+
+        if (name in target._data) {
+            target._data[name] = value;
+            target._dirty = true;
+            return true;
+        }
+
+        return false;
+    }
 };
+
+module.exports = exports = Model;

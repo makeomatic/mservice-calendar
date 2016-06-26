@@ -23,14 +23,21 @@ class EventModel extends Model {
 
 EventModel.tableName = 'events';
 EventModel.schema = {
-    'id': 'integer primary key', // unique event ID
-    'title': 'string',              // event title
-    'description': 'string',              // event description
-    'tags': 'array(string)',       // list of categories
-    'rrule': 'string',              // recurring rule
-    'recurring': 'boolean',             // true for recurring event
-    'start_time': 'timestamp',           // event start time
-    'end_time': 'timestamp'            // event end time
+    'id': 'string primary key',
+    'owner': 'string',
+    'hosts': 'array(string)',
+    'subscribers': 'array(string)',
+    'notifications': 'array(string)',
+    'title': 'string',
+    'description': 'string',
+    'picture': 'string',
+    'link': 'string',
+    'tags': 'array(string)',
+    'rrule': 'string',
+    'recurring': 'boolean',
+    'start_time': 'timestamp',
+    'end_time': 'timestamp',
+    'timezone': 'string'
 };
 
 module.exports = EventModel;

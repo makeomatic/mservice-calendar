@@ -2,6 +2,8 @@ const Promise = require('bluebird');
 const assert = require('assert');
 const moment = require('moment-timezone');
 const {debug} = require('../utils');
+const omit = require('lodash/omit');
+const assign = require('lodash/assign');
 
 describe('Events Suite', function EventsSuite() {
     const Calendar = require('../index');
@@ -13,6 +15,29 @@ describe('Events Suite', function EventsSuite() {
     const listHeaders = {routingKey: 'calendar.events.list'};
     const singleHeaders = {routingKey: 'calendar.events.single'};
 
+    const event1 = {
+        id: 'event1',
+        owner: 'test@test.ru',
+        title: 'Test event 1',
+        description: 'One time event',
+        recurring: false,
+        start_time: moment('2016-09-26').valueOf(),
+        end_time: moment('2016-09-27').valueOf(),
+        timezone: 'Asia/Irkutsk'
+    };
+
+    const event2 = {
+        id: 'event2',
+        owner: 'test@test.ru',
+        title: 'Test event 2',
+        description: 'Recurring event',
+        recurring: true,
+        rrule: 'FREQ=WEEKLY;COUNT=30;WKST=MO;BYDAY=TU',
+        start_time: moment('2016-09-01').valueOf(),
+        end_time: moment('2016-12-01').valueOf(),
+        timezone: 'Asia/Irkutsk'
+    };
+
     before('Migrate table', () => {
         return service.migrate();
     });
@@ -23,100 +48,52 @@ describe('Events Suite', function EventsSuite() {
 
     describe('Create', function EventCreateSuite() {
         it('Success one-time event', () => {
-            return service.router({
-                id: 1,
-                title: 'Test event 1',
-                description: 'One time event',
-                recurring: false,
-                start_time: moment().valueOf(),
-                end_time: moment().valueOf()
-            }, createHeaders)
+            return service.router(event1, createHeaders)
                 .reflect()
                 .then(result => {
+                    debug(result);
                     assert(result.isFulfilled());
                 });
         });
         it('Success recurring event', () => {
-            return service.router({
-                id: 2,
-                title: 'Test event 2',
-                description: 'Recurring event',
-                recurring: true,
-                rrule: 'FREQ=WEEKLY;COUNT=30;WKST=MO;BYDAY=TU',
-                start_time: moment().valueOf(),
-                end_time: moment().valueOf()
-            }, createHeaders)
+            return service.router(event2, createHeaders)
                 .reflect()
                 .then(result => {
+                    debug(result);
                     assert(result.isFulfilled());
                 });
         });
 
         it('Fail with existing id', () => {
-            return service.router({
-                id: 2,
-                title: 'Test event 2',
-                description: 'Recurring event',
-                recurring: true,
-                rrule: 'FREQ=WEEKLY;COUNT=30;WKST=MO;BYDAY=TU',
-                start_time: moment().valueOf(),
-                end_time: moment().valueOf()
-            }, createHeaders)
+            return service.router(event1, createHeaders)
                 .reflect()
                 .then(result => {
                     assert(result.isRejected());
                 });
         });
         it('Fail without id', () => {
-            return service.router({
-                title: 'Test event 2',
-                description: 'Recurring event',
-                recurring: true,
-                rrule: 'FREQ=WEEKLY;COUNT=30;WKST=MO;BYDAY=TU',
-                start_time: moment().valueOf(),
-                end_time: moment().valueOf()
-            }, createHeaders)
+            return service.router(omit(event1, 'id'), createHeaders)
                 .reflect()
                 .then(result => {
                     assert(result.isRejected());
                 });
         });
         it('Fail with missing rrule for recurring events', () => {
-            return service.router({
-                id: 3,
-                title: 'Test event 3',
-                description: 'Recurring event',
-                recurring: true,
-                start_time: moment().valueOf(),
-                end_time: moment().valueOf()
-            }, createHeaders)
+            return service.router(assign(omit(event2, 'rrule'), { id: 'event2_no_rrule' }), createHeaders)
                 .reflect()
                 .then(result => {
                     assert(result.isRejected());
                 });
         });
         it('Fail with invalid rrule for recurring events', () => {
-            return service.router({
-                id: 4,
-                title: 'Test event 4',
-                description: 'Recurring event',
-                recurring: true,
-                rrule: 'invalid rrule',
-                start_time: moment().valueOf(),
-                end_time: moment().valueOf()
-            }, createHeaders)
+            return service.router(assign({}, event2, { id: 'event2_invalid_rrule', rrule: 'invalid' }), createHeaders)
                 .reflect()
                 .then(result => {
                     assert(result.isRejected());
                 });
         });
         it('Fail on invalid schema', () => {
-            return service.router({
-                id: 5,
-                title: 'Test event 5',
-                description: 'Invalid schema',
-                invalid: true
-            }, createHeaders)
+            return service.router({id: 'invalid', invalid: true}, createHeaders)
                 .reflect()
                 .then(result => {
                     assert(result.isRejected());
@@ -127,19 +104,19 @@ describe('Events Suite', function EventsSuite() {
     describe('Update', function EventUpdateSuite() {
         it('Successful update', () => {
             return service.router({
-                id: 1,
+                id: event1.id,
                 description: 'Updated description'
             }, updateHeaders)
                 .reflect()
                 .then(result => {
                     debug(result);
                     assert(result.isFulfilled());
-                    assert.equal(result.value().data.description, 'Updated description');
+                    assert.equal(result.value().description, 'Updated description');
                 });
         });
         it('Fail on invalid schema', () => {
             return service.router({
-                id: 1,
+                id: event1.id,
                 description: 'Updated description',
                 wrong: 'field'
             }, updateHeaders)
@@ -159,7 +136,7 @@ describe('Events Suite', function EventsSuite() {
         });
         it('Fail for non-existent id', () => {
             return service.router({
-                id: 10,
+                id: 'invalid',
                 description: 'Updated description'
             }, updateHeaders)
                 .reflect()
@@ -177,13 +154,13 @@ describe('Events Suite', function EventsSuite() {
         });
         it('Return single record', () => {
             return service.router({
-                id: 1
+                id: event1.id
             }, singleHeaders)
                 .reflect()
                 .then(result => {
                     debug(result);
                     assert(result.isFulfilled());
-                    assert.equal(result.value().data.title, 'Test event 1');
+                    assert.equal(result.value().title, 'Test event 1');
                 });
         });
         it('Return empty list for non-matching query', () => {
@@ -214,7 +191,7 @@ describe('Events Suite', function EventsSuite() {
         });
         it('Fail to return single record for non-existent id', () => {
             return service.router({
-                id: 10
+                id: 'invalid'
             }, singleHeaders)
                 .reflect()
                 .then(result => {
@@ -235,7 +212,7 @@ describe('Events Suite', function EventsSuite() {
     describe('Delete', function EventDeleteSuite() {
         it('Delete single record', () => {
             return service.router({
-                id: 1
+                id: event1.id
             }, deleteHeaders)
                 .reflect()
                 .then(result => {
@@ -258,7 +235,7 @@ describe('Events Suite', function EventsSuite() {
         it('Delete by query', () => {
             return service.router({
                 where: {
-                    'id': ['>', 1]
+                    'id': ['like', '%event%']
                 }
             }, deleteHeaders)
                 .reflect()
@@ -270,7 +247,7 @@ describe('Events Suite', function EventsSuite() {
         it('Fail to delete on invalid query', () => {
             return service.router({
                 invalid: {
-                    'id': ['>', 1]
+                    'id': 'invalid'
                 }
             }, deleteHeaders)
                 .reflect()

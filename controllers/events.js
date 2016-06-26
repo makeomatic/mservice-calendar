@@ -6,6 +6,7 @@ const EventModel = require('../models/events');
 const Promise = require('bluebird');
 const Errors = require('common-errors');
 const RRule = require('rrule').RRule;
+const moment = require('moment-timezone');
 
 class EventController extends Controller {
     constructor(...args) {
@@ -34,7 +35,7 @@ class EventController extends Controller {
                 validated.tags = [];
             }
             
-            const instance = new EventModel(this.db, validated);
+            const instance = Model.create(this.db, EventModel, validated);
             return yield instance.save();
         });
     }
@@ -43,7 +44,22 @@ class EventController extends Controller {
         return this.wrap(data, 'update', function* updateUnit(data) {
             const validated = yield this.validate('event.update', data);
             const instance = yield Model.single(this.db, EventModel, validated.id);
-            instance.data = validated;
+            // check that this event is running before trying to update
+            const now = moment.tz(instance.timezone);
+            if (!instance.recurring) {
+                // simple check that event didn't end
+                const isValid = now.isBefore(moment(instance.end_time).tz(instance.timezone));
+                if (!isValid) {
+                    throw new Errors.Validation('Past events can not be edited');
+                }
+            } else {
+                const rules = RRule.fromString(instance.rrule);
+                const isValid = rules.before(now).length == 0;
+                if (!isValid) {
+                    throw new Errors.Validation('Past events can not be edited');
+                }
+            }
+            instance.update(validated);
             return yield instance.save();
         });
     }
