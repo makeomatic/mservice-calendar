@@ -1,9 +1,7 @@
 version: '2'
 services:
   calendar:
-    build: .
-    volumes:
-     - .:/code
+    image: makeomatic/mservice-calendar-test
     depends_on:
      - crateio
     entrypoint: ./test_docker.sh
