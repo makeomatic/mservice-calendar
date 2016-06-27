@@ -1,7 +1,7 @@
 const Controller = require('./controller');
 
-const Model = require('./model');
-const EventModel = require('./events');
+const Model = require('../models/model');
+const EventModel = require('../models/events');
 
 const Promise = require('bluebird');
 const Errors = require('common-errors');
@@ -36,7 +36,7 @@ class EventController extends Controller {
             if (validated.tags === undefined) {
                 validated.tags = [];
             }
-            
+
             const instance = Model.create(this.db, EventModel, validated);
             return yield instance.save();
         });
@@ -57,7 +57,7 @@ class EventController extends Controller {
     remove(data) {
         return this.wrap(data, 'remove', function* removeUnit(data) {
             const validated = yield this.validate('delete', data);
-            
+
             if (validated.id === undefined && validated.where === undefined) {
                 throw new Errors.Argument('Instance ID or filter must be provided');
             }

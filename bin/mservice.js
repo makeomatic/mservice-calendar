@@ -1,17 +1,9 @@
 #!/usr/bin/env node
 
-let dir;
-try {
-  require('babel-register');
-  dir = '../src';
-} catch (e) {
-  dir = '../lib';
-}
-
 // accepts conf through .env file
 // suitable for configuring this in the docker env
 const configuration = require('ms-conf');
-const Service = require(dir);
+const Service = require('../src');
 const service = new Service(configuration.get('/'));
 
 service.connect()

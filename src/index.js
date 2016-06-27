@@ -106,7 +106,7 @@ class CalendarService extends MService {
 CalendarService.defaultOpts = {
     plugins: ['logger', 'validator'],
     logger: true,
-    validator: [path.join(__dirname, 'schemas')]
+    validator: [path.join(__dirname, '../schemas')]
 };
 
 module.exports = CalendarService;

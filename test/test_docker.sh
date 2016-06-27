@@ -8,8 +8,8 @@ DC="$DIR/docker-compose.yml"
 PATH=$PATH:$DIR/.bin/
 COMPOSE=$(which docker-compose)
 MOCHA=$BIN/_mocha
-COVER="$BIN/isparta cover"
-NODE=$BIN/babel-node
+COVER="$BIN/istanbul cover"
+NODE=node
 TESTS=${TESTS:-test/suites/*.js}
 COMPOSE="docker-compose -f $DC"
 

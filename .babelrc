@@ -1,8 +1,0 @@
-{
-  plugins: [
-    'transform-es2015-spread',
-    'transform-object-rest-spread',
-    'transform-strict-mode',
-    'transform-es2015-destructuring'
-  ]
-}

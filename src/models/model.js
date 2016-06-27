@@ -5,7 +5,7 @@ const moment = require('moment-timezone');
 
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const omitBy = require('lodash/omitby');
+const omitBy = require('lodash/omitBy');
 const assign = require('lodash/assign');
 
 class Model {
@@ -39,7 +39,7 @@ class Model {
         if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
         this._data = assign({}, this._data, data);
     }
-    
+
     remove() {
         if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
         const id = this.id;
@@ -83,7 +83,7 @@ class Model {
                 return 'null';
         }
     };
-    
+
     static createFilter(filter) {
         let query = reduce(
             filter.where,
