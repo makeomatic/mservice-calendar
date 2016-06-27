@@ -1,7 +1,7 @@
 const Controller = require('./controller');
 
-const Model = require('../models/model');
-const EventModel = require('../models/events');
+const Model = require('./model');
+const EventModel = require('./events');
 
 const Promise = require('bluebird');
 const Errors = require('common-errors');
