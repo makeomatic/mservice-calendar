@@ -17,6 +17,13 @@ class Controller {
         this.hookTypes = Object.keys(this.hooks);
 
         this.dummyHook = function(value) { return value; }
+
+        // add coroutine handler for arrays
+        Promise.coroutine.addYieldHandler(function arrayHandler(value) {
+            if (Array.isArray(value)) return Promise.all(value.map(function (item) {
+                return Promise.resolve(item);
+            }));
+        });
     }
 
     /**

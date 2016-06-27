@@ -8,6 +8,8 @@ const Errors = require('common-errors');
 const RRule = require('rrule').RRule;
 const moment = require('moment-timezone');
 
+const map = require('lodash/map');
+
 class EventController extends Controller {
     constructor(...args) {
         super(...args);
@@ -44,20 +46,8 @@ class EventController extends Controller {
         return this.wrap(data, 'update', function* updateUnit(data) {
             const validated = yield this.validate('event.update', data);
             const instance = yield Model.single(this.db, EventModel, validated.id);
-            // check that this event is running before trying to update
-            const now = moment.tz(instance.timezone);
-            if (!instance.recurring) {
-                // simple check that event didn't end
-                const isValid = now.isBefore(moment(instance.end_time).tz(instance.timezone));
-                if (!isValid) {
-                    throw new Errors.Validation('Past events can not be edited');
-                }
-            } else {
-                const rules = RRule.fromString(instance.rrule);
-                const isValid = rules.before(now).length == 0;
-                if (!isValid) {
-                    throw new Errors.Validation('Past events can not be edited');
-                }
+            if (!EventController.isEditable(instance)) {
+                throw new Errors.Validation('Past events can not be edited');
             }
             instance.update(validated);
             return yield instance.save();
@@ -73,9 +63,21 @@ class EventController extends Controller {
             }
 
             if (validated.id) {
-                return yield Model.remove(this.db, EventModel, { where: { id: validated.id } })
+                const instance = yield Model.single(this.db, EventModel, validated.id);
+                if (!EventController.isEditable(instance)) {
+                    throw new Errors.Validation('Past events can not be edited');
+                }
+                return yield instance.remove();
             } else {
-                return yield Model.remove(this.db, EventModel, validated)
+                const items = yield Model.filter(this.db, EventModel, validated);
+                const toDelete = yield map(items, function(item) {
+                    if (EventController.isEditable(item)) {
+                        return Promise.resolve(item.remove()).return('OK');
+                    } else {
+                        return Promise.resolve('Past events can not be edited');
+                    }
+                });
+                return yield Model.removeByQuery(this.db, EventModel, validated)
             }
         });
     }
@@ -103,6 +105,18 @@ class EventController extends Controller {
             const events = yield this.list({where: {}}); // select all events
 
         });
+    }
+
+    static isEditable(instance) {
+        // check that this event is running before trying to update
+        const now = moment.tz(instance.timezone);
+        if (!instance.recurring) {
+            // simple check that event didn't end
+            return now.isBefore(moment(instance.end_time).tz(instance.timezone));
+        } else {
+            const rules = RRule.fromString(instance.rrule);
+            return rules.before(now.toDate()) === null;
+        }
     }
 }
 

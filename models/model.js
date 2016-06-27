@@ -15,9 +15,12 @@ class Model {
         this._data = data;
         this._dirty = true;
         this._newInstance = true;
+        this._valid = true;
     }
 
     save() {
+        if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
+
         if (this._newInstance) {
             this._newInstance = false;
             this._dirty = false;
@@ -33,10 +36,19 @@ class Model {
     }
 
     update(data) {
+        if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
         this._data = assign({}, this._data, data);
+    }
+    
+    remove() {
+        if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
+        const id = this.id;
+        this._valid = false;
+        return this.db.delete(this.tableName, `id='${id}'`);
     }
 
     old() {
+        if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
         this._newInstance = false;
         return this;
     }
@@ -73,7 +85,7 @@ class Model {
     };
     
     static createFilter(filter) {
-        return reduce(
+        let query = reduce(
             filter.where,
             (result, value, key) => {
                 let operator = '=';
@@ -85,30 +97,64 @@ class Model {
                 const escapedValue = Model.convertType(value);
 
                 return {
-                    command: concat(result.command, condition),
+                    where: concat(result.where, condition),
                     arguments: concat(result.arguments, escapedValue)
                 };
             },
-            {command: [], arguments: []}
+            {where: [], arguments: []}
         );
-    }
 
-    static createSelect(tableName, where) {
-        let base = `select * from ${tableName}`;
-        if (where.command.length > 0) {
-            base += ` where ${join(where.command, ',')}`;
+        query = reduce(
+            filter.order,
+            (result, value) => {
+                value = value.toLowerCase();
+                if (value[0] == '-') {
+                    value = value.replace('-', '') + ' desc';
+                } else if (value.indexOf('asc') < 0) {
+                    value = value + ' asc';
+                }
+                result.order = concat(result.order, value);
+                return result;
+            },
+            assign(query, { order: [] })
+        );
+
+        if (filter.start) {
+            query.start = filter.start;
         }
 
-        return [base, where.arguments];
-    }
-
-    static createDelete(tableName, where) {
-        let base = `delete from ${tableName}`;
-        if (where.command.length > 0) {
-            base += ` where ${join(where.command, ',')}`;
+        if (filter.limit) {
+            query.limit = filter.limit;
         }
 
-        return [base, where.arguments];
+        return query;
+    }
+
+    static createClause(filter) {
+        let base = [];
+        if (filter.where.length > 0) {
+            base.push(`where ${join(filter.where, ',')}`);
+        }
+        if (filter.order.length > 0) {
+            base.push(`order by ${join(filter.order, ',')}`);
+        }
+        if (filter.limit) {
+            base.push(`limit ${filter.limit}`);
+        }
+        if (filter.start) {
+            base.push(`offset ${filter.start}`);
+        }
+        return base;
+    }
+
+    static createSelect(tableName, filter) {
+        const base = concat([`select * from ${tableName}`], Model.createClause(filter));
+        return [join(base, ' '), filter.arguments];
+    }
+
+    static createDelete(tableName, filter) {
+        const base = concat([`delete from ${tableName}`], Model.createClause(filter));
+        return [join(base, ' '), filter.arguments];
     }
 
     static create(db, klass, data) {
@@ -137,7 +183,7 @@ class Model {
         });
     }
 
-    static remove(db, klass, filter) {
+    static removeByQuery(db, klass, filter) {
         const tableName = db._namespace + '.' + klass.tableName;
         const where = Model.createFilter(filter);
         const query = Model.createDelete(tableName, where);
@@ -163,6 +209,7 @@ class Model {
 Model.Proxy = {
     get: function(target, name) {
         if (target[name]) return target[name];
+        if (!target._valid) throw new Errors.InvalidOperationError('Instance is invalid, cannot get ' + name);
         return name in target._data ? target._data[name] : null;
     },
 
@@ -171,6 +218,8 @@ Model.Proxy = {
             target[name] = value;
             return true;
         }
+
+        if (!target._valid) throw new Errors.InvalidOperationError('Instance is invalid, cannot set ' + name);
 
         if (name in target._data) {
             target._data[name] = value;
