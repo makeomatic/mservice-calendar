@@ -3,7 +3,9 @@ const assert = require('assert');
 
 describe('Functionality suite', function FunctionalitySuite() {
     const Calendar = require('../index');
-    const service = new Calendar({crate: {namespace: 'test_calendar'}});
+    const host = process.env['CRATE_HOST'] || '127.0.0.1';
+    const connectionString = `http://${host}:4200`;
+    const service = new Calendar({crate: {namespace: 'test_calendar', connectionString: connectionString}});
 
     it('Should fail on invalid route', () => {
         return service.router({}, { routingKey: 'files.test.test' })

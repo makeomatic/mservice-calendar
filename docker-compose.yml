@@ -1,0 +1,15 @@
+version: '2'
+services:
+  calendar:
+    build: .
+    volumes:
+     - .:/code
+    depends_on:
+     - crateio
+    entrypoint: ./test_docker.sh
+  crateio:
+    image: crate
+    ports:
+     - "4200:4200"
+    volumes:
+     - .:/data
