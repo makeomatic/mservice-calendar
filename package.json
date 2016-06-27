@@ -4,8 +4,10 @@
   "description": "Calendar microservice",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/**/*",
-    "coverage": "./node_modules/.bin/codecov -t e497ca34-627a-42e6-8c9c-f2ba043f5026"
+    "test": "./test/test_docker.sh",
+    "compile": "babel -d lib ./src",
+    "prepublish": "npm run compile",
+    "start": "./bin/mservice.js"
   },
   "repository": {
     "type": "git",
@@ -28,13 +30,27 @@
     "lodash": "^4.13.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
+    "ms-amqp-transport": "^2.0.0",
+    "ms-conf": "^2.0.0",
     "ms-validation": "^2.0.0",
     "mservice": "^2.1.1",
     "node-crate": "^1.0.26",
     "rrule": "^2.1.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-eslint": "^6.1.0",
+    "babel-plugin-transform-es2015-destructuring": "^6.9.0",
+    "babel-plugin-transform-es2015-spread": "^6.8.0",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "babel-plugin-transform-strict-mode": "^6.8.0",
+    "babel-register": "^6.9.0",
     "codecov": "^1.0.1",
+    "eslint": "^2.13.1",
+    "eslint-config-airbnb-base": "^3.0.1",
+    "eslint-plugin-import": "^1.9.2",
+    "eslint-plugin-mocha": "^3.0.0",
+    "isparta": "^4.0.0",
     "istanbul": "^0.4.3",
     "mocha": "^2.5.3"
   }

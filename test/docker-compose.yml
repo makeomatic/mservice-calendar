@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  tester:
+    container_name: tester
+    image: makeomatic/node:6.2.2-tester-glibc
+    depends_on:
+      - crateio
+    command: tail -f /dev/null
+    volumes:
+      - ${PWD}:/src
+    environment:
+      - CRATE_HOST=crateio
+
+  rabbitmq:
+    expose:
+      - "5672"
+    image: makeomatic/alpine-rabbitmq:3.5.7
+    container_name: rabbitmq
+    hostname: rabbitmq
+
+  crateio:
+    container_name: crateio
+    hostname: crateio
+    image: crate
+    ports:
+      - "4200:4200"
