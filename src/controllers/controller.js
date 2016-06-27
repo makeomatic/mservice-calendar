@@ -16,7 +16,7 @@ class Controller {
 
         this.hookTypes = Object.keys(this.hooks);
 
-        this.dummyHook = function(value) { return value; }
+        this.dummyHook = function(value) { return value; };
 
         // add coroutine handler for arrays
         Promise.coroutine.addYieldHandler(function arrayHandler(value) {
