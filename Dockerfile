@@ -1,9 +1,4 @@
-FROM node:6.2.2
-COPY . /code
-WORKDIR /code
-RUN rm -rf ./node_modules
+FROM makeomatic/node:6.2.2-onbuild
 
-RUN apt-get install -y curl
-RUN npm install
-
-ENV CRATE_HOST=crateio
+ENV NCONF_NAMESPACE=MS_CALENDAR \
+    NODE_ENV=production
