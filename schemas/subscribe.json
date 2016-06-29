@@ -1,0 +1,11 @@
+{
+    "id": "subscribe",
+    "type": "object",
+    "required": ["event", "subscriber"],
+    "properties": {
+        "event": { "type": "string", "minLength": 1 },
+        "subscriber": { "type": "string", "minLength": 1 },
+        "notify": { "type": "boolean", "default": true }
+    },
+    "additionalProperties": false
+}

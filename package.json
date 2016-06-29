@@ -4,8 +4,8 @@
     "description": "Calendar microservice",
     "main": "./src/index.js",
     "scripts": {
-        "test-local": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
-        "test": "./test/test_docker.sh",
+        "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
+        "test-docker": "./test/test_docker.sh",
         "start": "./bin/mservice.js"
     },
     "repository": {

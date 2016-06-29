@@ -9,6 +9,7 @@ const RRule = require('rrule').RRule;
 const moment = require('moment-timezone');
 
 const map = require('lodash/map');
+const concat = require('lodash/concat');
 
 class EventController extends Controller {
     constructor(...args) {
@@ -49,8 +50,17 @@ class EventController extends Controller {
             if (!EventController.isEditable(instance)) {
                 throw new Errors.Validation('Past events can not be edited');
             }
+            const notify = validated.recurring === true && validated.rrule != instance.rrule ||
+                validated.start_time != instance.start_time ||
+                validated.end_time != instance.end_time;
+
             instance.update(validated);
-            return yield instance.save();
+            const updated = yield instance.save();
+
+            return {
+                instance: updated,
+                notify: notify
+            }
         });
     }
 
@@ -62,23 +72,32 @@ class EventController extends Controller {
                 throw new Errors.Argument('Instance ID or filter must be provided');
             }
 
+            let notifications = [];
+
             if (validated.id) {
                 const instance = yield Model.single(this.db, EventModel, validated.id);
                 if (!EventController.isEditable(instance)) {
                     throw new Errors.Validation('Past events can not be edited');
                 }
-                return yield instance.remove();
+                if (instance.notifications) {
+                    notifications = concat(notifications, instance.raw());
+                }
+                yield instance.remove();
             } else {
                 const items = yield Model.filter(this.db, EventModel, validated);
                 const toDelete = yield map(items, function(item) {
                     if (EventController.isEditable(item)) {
+                        if (item.notifications) {
+                            notifications = concat(notifications, item.raw());
+                        }
                         return Promise.resolve(item.remove()).return('OK');
                     } else {
                         return Promise.resolve('Past events can not be edited');
                     }
                 });
-                return yield Model.removeByQuery(this.db, EventModel, validated)
             }
+
+            return notifications;
         });
     }
 
@@ -104,6 +123,18 @@ class EventController extends Controller {
             const validated = yield this.validate('calendar', data);
             const events = yield this.list({where: {}}); // select all events
 
+        });
+    }
+
+    subscribe(data) {
+        return this.wrap(data, 'subscribe', function* calendarUnit(data) {
+            const validated = yield this.validate('subscribe', data);
+            const instance = yield Model.single(this.db, EventModel, validated.event);
+            if (validated.notify) {
+                instance.updateArray('notifications', validated.subscriber);
+            }
+            instance.updateArray('subscribers', validated.subscriber);
+            return yield instance.save();
         });
     }
 

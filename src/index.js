@@ -4,8 +4,6 @@ const Errors = require('common-errors');
 
 const Model = require('./models/model');
 const EventModel = require('./models/events');
-const HostModel = require('./models/hosts');
-const GuestModel = require('./models/guests');
 
 const EventController = require('./controllers/events');
 
@@ -47,9 +45,7 @@ class CalendarService extends MService {
     migrate() {
         const worker = Promise.coroutine(function*() {
             return yield [
-                Model.migrate(this.db, EventModel),
-                Model.migrate(this.db, HostModel),
-                Model.migrate(this.db, GuestModel)
+                Model.migrate(this.db, EventModel)
             ];
         }.bind(this));
 
@@ -63,9 +59,7 @@ class CalendarService extends MService {
     cleanup() {
         const worker = Promise.coroutine(function* () {
             return yield [
-                Model.cleanup(this.db, EventModel),
-                Model.cleanup(this.db, HostModel),
-                Model.cleanup(this.db, GuestModel)
+                Model.cleanup(this.db, EventModel)
             ];
         }.bind(this));
 

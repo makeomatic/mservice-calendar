@@ -16,6 +16,7 @@ class Model {
         this._dirty = true;
         this._newInstance = true;
         this._valid = true;
+        this._pendingOperations = [];
     }
 
     save() {
@@ -29,7 +30,7 @@ class Model {
             this._dirty = false;
             const update = omitBy(this._data, (value, key) => (key == 'id' || value === null));
             const query = this.createUpdate(update, this.tableName, this._data.id);
-            return Promise.resolve(this.db.execute(query)).return(this);
+            return Promise.resolve(this.db.execute(query[0], query[1])).return(this);
         } else {
             return Promise.resolve(this);
         }
@@ -38,6 +39,24 @@ class Model {
     update(data) {
         if (!this._valid) throw new Errors.InvalidOperationError('Instance is invalid');
         this._data = assign({}, this._data, data);
+    }
+
+    updateArray(field, data) {
+        if (!Array.isArray(data)) {
+            data = [data];
+        }
+
+        this._pendingOperations.push({
+            op: 'updateArray',
+            field: field,
+            data: data
+        });
+
+        if (!this._data[field]) {
+            this._data[field] = data;
+        } else {
+            this._data[field] = concat(this._data[field], data);
+        }
     }
 
     remove() {
@@ -54,34 +73,37 @@ class Model {
     }
 
     createUpdate(update, tableName, id) {
-        const setters = reduce(
+        const filter = Model.createFilter({where: { id: id }});
+        const updates = reduce(
             update,
-            (result, value, key) => concat(result, `${key}=${Model.convertType(value)}`),
-            []
+            (result, value, key) => assign(result, {fields: concat(result.fields, `${key} = ?`), values: concat(result.values, Model.convertType(value))}),
+            {fields: [], values: []}
         );
-
-        return `update ${tableName} set ${join(setters, ', ')} where id=${Model.convertType(id)}`;
+        this._pendingOperations.forEach((operation) => {
+            const index = updates.fields.indexOf(`${operation.field} = ?`);
+            if (index >= 0) {
+                updates.fields[index] = `${operation.field} = array_unique(${operation.field}, ?)`;
+                updates.values[index] = operation.data;
+            }
+        });
+        const base = concat([`update ${this.tableName} set`], [join(updates.fields, ', ')], Model.createClause(filter));
+        return [join(base, ' '), concat(updates.values || [], filter.arguments || [])];
     }
 
-    // TODO: Date timezone!
+    raw() {
+        return this._data;
+    }
+
     static convertType(value) {
-        switch (typeof value) {
-            case 'string':
-                return `'${value}'`;
-            case 'number':
-            case 'boolean':
-                return value;
-            case 'object':
-                if (Array.isArray(value)) {
-                    return '[' + join(value.map(Model.convertType), ', ') + ']';
-                } else if (value instanceof Date) {
-                    return `'${moment(value).format()}'`;
-                } else {
-                    return 'null';
-                }
-            default:
-                return 'null';
+        if (moment.isDate(value) || moment.isMoment(value)) {
+            value = moment.tz(value, this.timezone).toDate();
         }
+
+        if (Array.isArray(value)) {
+            value = [value]; // concat unwraps
+        }
+
+        return value;
     };
 
     static createFilter(filter) {
@@ -132,10 +154,10 @@ class Model {
 
     static createClause(filter) {
         let base = [];
-        if (filter.where.length > 0) {
+        if (filter.where && filter.where.length > 0) {
             base.push(`where ${join(filter.where, ',')}`);
         }
-        if (filter.order.length > 0) {
+        if (filter.order && filter.order.length > 0) {
             base.push(`order by ${join(filter.order, ',')}`);
         }
         if (filter.limit) {
