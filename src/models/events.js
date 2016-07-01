@@ -37,6 +37,7 @@ EventModel.schema = {
     'recurring': 'boolean',
     'start_time': 'timestamp',
     'end_time': 'timestamp',
+    'duration': 'string',
     'timezone': 'string'
 };
 

@@ -22,6 +22,7 @@ describe('Events Suite', function EventsSuite() {
     const listHeaders = {routingKey: 'calendar.events.list'};
     const singleHeaders = {routingKey: 'calendar.events.single'};
     const subscribeHeaders = {routingKey: 'calendar.events.subscribe'};
+    const calendarHeaders = {routingKey: 'calendar.events.calendar'};
 
     const event1 = {
         id: 'event1',
@@ -41,8 +42,9 @@ describe('Events Suite', function EventsSuite() {
         description: 'Recurring event',
         recurring: true,
         rrule: 'FREQ=WEEKLY;COUNT=30;WKST=MO;BYDAY=TU',
-        start_time: moment('2016-09-01').valueOf(),
+        start_time: moment('2016-09-01 19:30').valueOf(),
         end_time: moment('2016-12-01').valueOf(),
+        duration: 'PT1H',
         timezone: 'Asia/Irkutsk'
     };
 
@@ -236,6 +238,20 @@ describe('Events Suite', function EventsSuite() {
                 .reflect()
                 .then(result => {
                     assert(result.isRejected());
+                });
+        });
+    });
+
+    describe('Calendar', function CalendarSuite() {
+        it('Return calendar for date range', () => {
+            return service.router({
+                start: moment('2016-08-01').valueOf(),
+                end: moment('2016-10-01').valueOf()
+            }, calendarHeaders)
+                .reflect()
+                .then(result => {
+                    debug(result);
+                    assert(result.isFulfilled());
                 });
         });
     });

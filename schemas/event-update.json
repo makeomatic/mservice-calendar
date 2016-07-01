@@ -17,6 +17,7 @@
     "recurring": { "type": "boolean", "default": false },
     "start_time": { "type": "integer" },
     "end_time": { "type": "integer" },
+    "duration": { "type": "string", "minLength": 1 },
     "timezone": { "type": "string", "minLength": 1 }
   },
   "additionalProperties": false

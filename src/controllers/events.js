@@ -10,6 +10,9 @@ const moment = require('moment-timezone');
 
 const map = require('lodash/map');
 const concat = require('lodash/concat');
+const filter = require('lodash/filter');
+const reduce = require('lodash/reduce');
+const assign = require('lodash/assign');
 
 class EventController extends Controller {
     constructor(...args) {
@@ -24,6 +27,10 @@ class EventController extends Controller {
                 // if missing rrule, throw
                 if (validated.rrule === undefined) {
                     throw new Errors.Argument('Recurring rules require rrule attribute');
+                }
+
+                if (validated.duration === undefined) {
+                    throw new Errors.Argument('Recurring rules require duration attribute');
                 }
 
                 // parse rrule to see if it's correct
@@ -121,8 +128,68 @@ class EventController extends Controller {
     calendar(data) {
         return this.wrap(data, 'calendar', function* calendarUnit(data) {
             const validated = yield this.validate('calendar', data);
-            const events = yield this.list({where: {}}); // select all events
+            // select all events
+            const events = yield this.list({where: {}});
+            // for each event build it's schedule
+            return reduce(events, (acc, event) => {
+                const start = moment.tz(validated.start, event.timezone);
+                const end = moment.tz(validated.end, event.timezone);
 
+                const start_event = moment.tz(event.start_time, event.timezone);
+                const end_event = moment.tz(event.end_time, event.timezone);
+
+                let duration;
+                if (event.duration) {
+                    duration = moment.duration(event.duration);
+                } else {
+                    duration = moment.duration(end_event.diff(start_event));
+                }
+
+                let schedule;
+                if (event.recurring) {
+                    const rrule = RRule.fromString(event.rrule);
+                    // include time frame borders
+                    let rrule_start, rrule_end;
+                    if (start.isBefore(start_event)) {
+                        rrule_start = start_event.clone();
+                    } else {
+                        rrule_start = start.clone();
+                    }
+                    if (end.isAfter(end_event)) {
+                        rrule_end = end_event.clone();
+                    } else {
+                        rrule_end = end.clone();
+                    }
+                    schedule = rrule.between(rrule_start.toDate(), rrule_end.toDate(), true);
+                    // convert schedules to desired format: append start and end for every event
+                    schedule = map(schedule, entry => {
+                        const time = moment.tz(entry, event.timezone);
+                        const start_entry = time.clone().hours(start_event.hours()).minutes(start_event.minutes()).seconds(0);
+                        const end_entry = start_entry.clone().add(duration).seconds(0);
+                        return [start_entry.valueOf(), end_entry.valueOf()];
+                    });
+                } else {
+                    // only include event if it happens inside desired time frame
+                    if (start_event.isAfter(start) && end_event.isBefore(end)) {
+                        schedule = [[start_event.valueOf(), end_event.valueOf()]];
+                    } else {
+                        schedule = null;
+                    }
+                }
+
+                if (schedule != null) {
+                    const result = {
+                        [event.id]: {
+                            id: event.id,
+                            title: event.title,
+                            tz: event.timezone,
+                            schedule
+                        }
+                    };
+
+                    return assign(acc, result);
+                }
+            }, {});
         });
     }
 
