@@ -12,7 +12,6 @@ const map = require('lodash/map');
 const concat = require('lodash/concat');
 const filter = require('lodash/filter');
 const reduce = require('lodash/reduce');
-const assign = require('lodash/assign');
 
 class EventController extends Controller {
     constructor(...args) {
@@ -179,17 +178,17 @@ class EventController extends Controller {
 
                 if (schedule != null) {
                     const result = {
-                        [event.id]: {
-                            id: event.id,
-                            title: event.title,
-                            tz: event.timezone,
-                            schedule
-                        }
+                        id: event.id,
+                        title: event.title,
+                        tz: event.timezone,
+                        schedule
                     };
 
-                    return assign(acc, result);
+                    return concat(acc, result);
+                } else {
+                    return acc;
                 }
-            }, {});
+            }, []);
         });
     }
 
