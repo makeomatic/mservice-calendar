@@ -73,11 +73,14 @@ class Model {
     }
 
     createUpdate(update, tableName, id) {
-        const filter = Model.createFilter({where: { id: id }});
+        const filter = Model.createFilter({ where: { id: id } });
         const updates = reduce(
             update,
-            (result, value, key) => assign(result, {fields: concat(result.fields, `${key} = ?`), values: concat(result.values, Model.convertType(value))}),
-            {fields: [], values: []}
+            (result, value, key) => assign(result, {
+                fields: concat(result.fields, `${key} = ?`),
+                values: concat(result.values, Model.convertType(value))
+            }),
+            { fields: [], values: [] }
         );
         this._pendingOperations.forEach((operation) => {
             const index = updates.fields.indexOf(`${operation.field} = ?`);
@@ -123,7 +126,7 @@ class Model {
                     arguments: concat(result.arguments, escapedValue)
                 };
             },
-            {where: [], arguments: []}
+            { where: [], arguments: [] }
         );
 
         query = reduce(
@@ -218,24 +221,27 @@ class Model {
 
     static migrate(db, klass) {
         const tableName = db._namespace + '.' + klass.tableName;
-        const schema = {[tableName]: klass.schema};
-        return db.create(schema);
+        const cols = Object.keys(klass.schema).map(function (key) {
+            return key + ' ' + klass.schema[key];
+        });
+        var statement = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + cols + ')';
+        return db.execute(statement, []);
     }
 
     static cleanup(db, klass) {
         const tableName = db._namespace + '.' + klass.tableName;
-        return db.drop(tableName);
+        return db.execute('DROP TABLE IF EXISTS ' + tableName, []);
     }
 }
 
 Model.Proxy = {
-    get: function(target, name) {
+    get: function (target, name) {
         if (target[name]) return target[name];
         if (!target._valid) throw new Errors.InvalidOperationError('Instance is invalid, cannot get ' + name);
         return name in target._data ? target._data[name] : null;
     },
 
-    set: function(target, name, value) {
+    set: function (target, name, value) {
         if (target[name]) {
             target[name] = value;
             return true;

@@ -45,7 +45,8 @@ class EventController extends Controller {
             }
 
             const instance = Model.create(this.db, EventModel, validated);
-            return yield instance.save();
+            const saved = yield instance.save();
+            return saved.raw();
         });
     }
 

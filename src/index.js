@@ -8,7 +8,7 @@ const EventModel = require('./models/events');
 const EventController = require('./controllers/events');
 
 const path = require('path');
-
+const merge = require('lodash/merge');
 
 class CalendarService extends MService {
 
@@ -18,7 +18,10 @@ class CalendarService extends MService {
      * @param opts.namespace {string} Namespace for tables. Default is 'calendar'.
      */
     constructor(opts = {}) {
-        super(Object.assign({crate: {}}, CalendarService.defaultOpts, opts));
+        const conf = merge({}, CalendarService.defaultOpts, opts);
+
+        super(conf);
+        this.router = this.router.bind(this);
 
         // attach data source
         this.db = require('node-crate');
@@ -57,7 +60,7 @@ class CalendarService extends MService {
      * @returns {Promise}
      */
     cleanup() {
-        const worker = Promise.coroutine(function* () {
+        const worker = Promise.coroutine(function*() {
             return yield [
                 Model.cleanup(this.db, EventModel)
             ];
@@ -70,37 +73,102 @@ class CalendarService extends MService {
      * Routes messages to appropriate controllers.
      * @param message
      * @param headers
+     * @param actions
+     * @param next
      * @returns {Promise}
      */
-    router(message, headers) {
+    router(message, headers, actions, next) {
+        const { _config: { amqp: { onCompete }, debug }, log, controllers } = this;
+        const time = process.hrtime();
+
+        let promise = Promise.bind(this);
+
         if (typeof headers['routingKey'] !== typeof 'string') {
-            return Promise.reject(new Errors.NotPermitted('Invalid headers'));
-        }
-        const [_service, _controller, _action] = headers.routingKey.split('.');
-        if (_service != 'calendar') {
-            return Promise.reject(new Errors.NotPermitted('Invalid routing'));
-        }
-
-        if (this.controllers.hasOwnProperty(_controller)) {
-            const controller = this.controllers[_controller];
-            const action = controller[_action];
-
-            if (typeof action == 'function') {
-                return action.call(controller, message);
-            } else {
-                return Promise.reject(new Errors.Argument('Invalid action'));
-            }
+            promise = promise.throw(new Errors.NotPermitted('Invalid headers'));
         } else {
-            return Promise.reject(new Errors.Argument('Invalid controller'));
+            const [_service, _controller, _action] = headers.routingKey.split('.');
+
+            if (_service != 'calendar') {
+                promise = promise.throw(new Errors.NotPermitted('Invalid routing'));
+            } else {
+                if (controllers.hasOwnProperty(_controller)) {
+                    const controller = controllers[_controller];
+                    const action = controller[_action];
+
+                    if (typeof action == 'function') {
+                        promise = action.call(controller, message);
+                    } else {
+                        promise = promise.throw(new Errors.Argument('Invalid action'));
+                    }
+                } else {
+                    promise = promise.throw(new Errors.Argument('Invalid controller'));
+                }
+            }
         }
+
+        // this is a hook to handle QoS or any other events
+        if (typeof onComplete == 'function') {
+            promise = promise
+                .reflect()
+                .then(fate => {
+                    const err = fate.isRejected() ? fate.reason() : null;
+                    const data = fate.isFulfilled() ? fate.value() : null;
+                    return [err, data, actionName, actions];
+                })
+                .spread(onComplete);
+        }
+
+        // if we have an error
+        promise = promise
+            .reflect()
+            .then(function auditLog(fate) {
+                const execTime = process.hrtime(time);
+                const meta = {
+                    message,
+                    headers,
+                    latency: (execTime[0] * 1000) + (+(execTime[1] / 1000000).toFixed(3)),
+                };
+
+                if (fate.isRejected()) {
+                    const reason = fate.reason();
+                    const err = typeof reason.toJSON == 'function' ? reason.toJSON() : reason.toString();
+                    log.error(meta, 'Error performing operation', err);
+                    throw reason;
+                }
+
+                const response = fate.value();
+                log.info(meta, 'completed operation', debug ? response : '');
+                return response;
+            });
+
+        if (typeof next == 'function') {
+            return promise.asCallback(next);
+        }
+
+        return promise;
     }
 
 }
 
 CalendarService.defaultOpts = {
-    plugins: ['logger', 'validator'],
+    plugins: ['logger', 'validator', 'amqp'],
     logger: true,
-    validator: [path.join(__dirname, '../schemas')]
+    validator: [path.join(__dirname, '../schemas')],
+    crate: {},
+    amqp: {
+        queue: 'ms-calendar',
+        initRoutes: false,
+        initRouter: false,
+        listen: [
+            'calendar.events.create',
+            'calendar.events.update',
+            'calendar.events.remove',
+            'calendar.events.list',
+            'calendar.events.single',
+            'calendar.events.subscribe',
+            'calendar.events.calendar'
+        ]
+    },
 };
 
 module.exports = CalendarService;

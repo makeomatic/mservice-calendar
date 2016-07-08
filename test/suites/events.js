@@ -16,13 +16,13 @@ describe('Events Suite', function EventsSuite() {
         }
     });
 
-    const createHeaders = {routingKey: 'calendar.events.create'};
-    const updateHeaders = {routingKey: 'calendar.events.update'};
-    const deleteHeaders = {routingKey: 'calendar.events.remove'};
-    const listHeaders = {routingKey: 'calendar.events.list'};
-    const singleHeaders = {routingKey: 'calendar.events.single'};
+    const createHeaders =    {routingKey: 'calendar.events.create'};
+    const updateHeaders =    {routingKey: 'calendar.events.update'};
+    const deleteHeaders =    {routingKey: 'calendar.events.remove'};
+    const listHeaders =      {routingKey: 'calendar.events.list'};
+    const singleHeaders =    {routingKey: 'calendar.events.single'};
     const subscribeHeaders = {routingKey: 'calendar.events.subscribe'};
-    const calendarHeaders = {routingKey: 'calendar.events.calendar'};
+    const calendarHeaders =  {routingKey: 'calendar.events.calendar'};
 
     const event1 = {
         id: 'event1',
