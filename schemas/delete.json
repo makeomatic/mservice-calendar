@@ -1,9 +1,11 @@
 {
-  "id": "delete",
-  "type": "object",
-  "properties": {
-    "id": { "type": "string" },
-    "where": { "type": "object" }
-  },
-  "additionalProperties": false
+    "id": "delete",
+    "type": "object",
+    "required": [ "auth" ],
+    "properties": {
+        "id": { "type": "string" },
+        "auth": { "type": "string", "minLength": 1 },
+        "where": { "type": "object" }
+    },
+    "additionalProperties": false
 }

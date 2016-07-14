@@ -11,6 +11,7 @@
  */
 
 const Model = require('./model');
+const moment = require('moment-timezone');
 
 class EventModel extends Model {
     constructor(db, data) {
@@ -18,6 +19,12 @@ class EventModel extends Model {
 
         this.tableName = this.db._namespace + '.' + EventModel.tableName;
         this.schema = {[this.tableName]: EventModel.schema};
+    }
+
+    fromDb(data) {
+        data['start_time'] = moment(data['start_time']).valueOf();
+        data['end_time'] = moment(data['end_time']).valueOf();
+        return data;
     }
 }
 

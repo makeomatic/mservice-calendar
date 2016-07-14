@@ -10,6 +10,8 @@ const EventController = require('./controllers/events');
 const path = require('path');
 const merge = require('lodash/merge');
 
+const inspect = require('util').inspect;
+
 class CalendarService extends MService {
 
     /**
@@ -131,7 +133,7 @@ class CalendarService extends MService {
 
                 if (fate.isRejected()) {
                     const reason = fate.reason();
-                    const err = typeof reason.toJSON == 'function' ? reason.toJSON() : reason.toString();
+                    const err = typeof reason.toJSON == 'function' ? reason.toJSON() : inspect(reason);
                     log.error(meta, 'Error performing operation', err);
                     throw reason;
                 }
@@ -152,7 +154,7 @@ class CalendarService extends MService {
 
 CalendarService.defaultOpts = {
     plugins: ['logger', 'validator', 'amqp'],
-    logger: true,
+    logger: process.env === 'production',
     validator: [path.join(__dirname, '../schemas')],
     crate: {},
     amqp: {

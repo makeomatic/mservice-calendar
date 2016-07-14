@@ -7,6 +7,7 @@ const Promise = require('bluebird');
 const Errors = require('common-errors');
 const omitBy = require('lodash/omitBy');
 const assign = require('lodash/assign');
+const map = require('lodash/map');
 
 class Model {
     constructor(db, data) {
@@ -17,6 +18,10 @@ class Model {
         this._newInstance = true;
         this._valid = true;
         this._pendingOperations = [];
+    }
+
+    fromDb(data) {
+        return data;
     }
 
     save() {
@@ -94,15 +99,25 @@ class Model {
     }
 
     raw() {
-        return this._data;
+        return this.fromDb(this._data);
     }
 
-    static convertType(value) {
+    static convertType(value, operator) {
         if (moment.isDate(value) || moment.isMoment(value)) {
             value = moment.tz(value, this.timezone).toDate();
         }
 
-        if (Array.isArray(value)) {
+        if (Array.isArray(value) && operator == 'in') {
+            let elements = map(value, (item) => {
+                if (typeof item == typeof 'string') {
+                    return `'${item}'`;
+                } else {
+                    return item;
+                }
+            });
+            elements = join(elements, ', ');
+            value = `(${elements})`;
+        } else {
             value = [value]; // concat unwraps
         }
 
@@ -114,16 +129,24 @@ class Model {
             filter.where,
             (result, value, key) => {
                 let operator = '=';
+                let condition, escapedValue;
+
                 if (Array.isArray(value)) {
-                    operator = value[0];
+                    operator = value[0].toLowerCase();
                     value = value[1];
                 }
-                const condition = `${key} ${operator} ?`;
-                const escapedValue = Model.convertType(value);
+                if (operator == 'in') {
+                    escapedValue = Model.convertType(value, operator);
+                    condition = `${key} ${operator} ${escapedValue}`;
+                    escapedValue = null;
+                } else {
+                    condition = `${key} ${operator} ?`;
+                    escapedValue = Model.convertType(value, operator);
+                }
 
                 return {
                     where: concat(result.where, condition),
-                    arguments: concat(result.arguments, escapedValue)
+                    arguments: (escapedValue !== null) ? concat(result.arguments, escapedValue) : result.arguments,
                 };
             },
             { where: [], arguments: [] }
@@ -158,7 +181,8 @@ class Model {
     static createClause(filter) {
         let base = [];
         if (filter.where && filter.where.length > 0) {
-            base.push(`where ${join(filter.where, ',')}`);
+            const where = map(filter.where, (clause) => (`(${clause})`));
+            base.push(`where ${join(where, ' and ')}`);
         }
         if (filter.order && filter.order.length > 0) {
             base.push(`order by ${join(filter.order, ',')}`);
@@ -192,7 +216,7 @@ class Model {
             if (result.json.length == 1) {
                 return new Proxy(new klass(db, result.json[0]).old(), Model.Proxy);
             } else {
-                throw new Errors.Argument('Object with specified ID not found');
+                throw new Errors.Argument(`Object with specified ID ${id} not found`);
             }
         });
     }
@@ -219,12 +243,13 @@ class Model {
         });
     }
 
+    // TODO: apply sharding and replication options
     static migrate(db, klass) {
         const tableName = db._namespace + '.' + klass.tableName;
         const cols = Object.keys(klass.schema).map(function (key) {
             return key + ' ' + klass.schema[key];
         });
-        var statement = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + cols + ')';
+        var statement = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + cols + ') CLUSTERED INTO 1 SHARDS WITH (number_of_replicas=0)';
         return db.execute(statement, []);
     }
 

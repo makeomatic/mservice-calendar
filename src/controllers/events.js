@@ -12,6 +12,7 @@ const map = require('lodash/map');
 const concat = require('lodash/concat');
 const filter = require('lodash/filter');
 const reduce = require('lodash/reduce');
+const merge = require('lodash/merge');
 
 class EventController extends Controller {
     constructor(...args) {
@@ -40,10 +41,6 @@ class EventController extends Controller {
                 }
             }
 
-            if (validated.tags === undefined) {
-                validated.tags = [];
-            }
-
             const instance = Model.create(this.db, EventModel, validated);
             const saved = yield instance.save();
             return saved.raw();
@@ -54,18 +51,22 @@ class EventController extends Controller {
         return this.wrap(data, 'update', function* updateUnit(data) {
             const validated = yield this.validate('event.update', data);
             const instance = yield Model.single(this.db, EventModel, validated.id);
+            if (instance.owner != data.auth) {
+                throw new Errors.NotPermitted('You\'re not permitted to edit this event');
+            }
             if (!EventController.isEditable(instance)) {
                 throw new Errors.Validation('Past events can not be edited');
             }
-            const notify = validated.recurring === true && validated.rrule != instance.rrule ||
-                validated.start_time != instance.start_time ||
-                validated.end_time != instance.end_time;
+            const { event } = validated;
+            const notify = event.recurring === true && event.rrule != instance.rrule ||
+                event.start_time != instance.start_time ||
+                event.end_time != instance.end_time;
 
-            instance.update(validated);
+            instance.update(event);
             const updated = yield instance.save();
 
             return {
-                instance: updated,
+                instance: updated.raw(),
                 notify: notify
             }
         });
@@ -83,6 +84,9 @@ class EventController extends Controller {
 
             if (validated.id) {
                 const instance = yield Model.single(this.db, EventModel, validated.id);
+                if (instance.owner != data.auth) {
+                    throw new Errors.NotPermitted('You\'re not permitted to delete this event');
+                }
                 if (!EventController.isEditable(instance)) {
                     throw new Errors.Validation('Past events can not be edited');
                 }
@@ -91,17 +95,23 @@ class EventController extends Controller {
                 }
                 yield instance.remove();
             } else {
-                const items = yield Model.filter(this.db, EventModel, validated);
-                const toDelete = yield map(items, function(item) {
-                    if (EventController.isEditable(item)) {
+                let filterQuery = merge({}, validated, { where: { owner: data.auth } });
+                const items = yield Model.filter(this.db, EventModel, filterQuery);
+                const toDelete = map(items, function(item) {
+                    if (EventController.isEditable(item) && item.owner == data.auth) {
                         if (item.notifications) {
                             notifications = concat(notifications, item.raw());
                         }
-                        return Promise.resolve(item.remove()).return('OK');
+                        return item.id;
                     } else {
-                        return Promise.resolve('Past events can not be edited');
+                        return null;
                     }
                 });
+                const ids = filter(toDelete, (item) => (item !== null));
+                if (ids.length > 0) {
+                    filterQuery = { where: { id: ["in", ids] } };
+                    yield Model.removeByQuery(this.db, EventModel, filterQuery);
+                }
             }
 
             return notifications;
@@ -111,7 +121,8 @@ class EventController extends Controller {
     list(data) {
         return this.wrap(data, 'list', function* singleUnit(data) {
             const validated = yield this.validate('list', data);
-            return yield Model.filter(this.db, EventModel, validated);
+            const results = yield Model.filter(this.db, EventModel, validated);
+            return map(results, (result) => (result.raw()));
         });
     }
 
@@ -121,7 +132,7 @@ class EventController extends Controller {
                 throw new Errors.Argument('Instance ID must be provided');
             }
 
-            return yield Model.single(this.db, EventModel, data.id);
+            return (yield Model.single(this.db, EventModel, data.id)).raw();
         });
     }
 
@@ -201,7 +212,8 @@ class EventController extends Controller {
                 instance.updateArray('notifications', validated.subscriber);
             }
             instance.updateArray('subscribers', validated.subscriber);
-            return yield instance.save();
+            const result = yield instance.save();
+            return result.raw();
         });
     }
 

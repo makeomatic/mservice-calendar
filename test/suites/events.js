@@ -123,7 +123,10 @@ describe('Events Suite', function EventsSuite() {
         it('Successful update', () => {
             return service.router({
                 id: event1.id,
-                description: 'Updated description'
+                auth: "test@test.ru",
+                event: {
+                    description: 'Updated description',
+                },
             }, updateHeaders)
                 .reflect()
                 .then(result => {
@@ -257,9 +260,12 @@ describe('Events Suite', function EventsSuite() {
     });
 
     describe('Delete', function EventDeleteSuite() {
+        this.timeout(15000);
+        beforeEach(() => Promise.delay(1000));
         it('Delete single record', () => {
             return service.router({
                 id: event1.id,
+                auth: "test@test.ru",
             }, deleteHeaders)
                 .reflect()
                 .then(result => {
@@ -269,8 +275,9 @@ describe('Events Suite', function EventsSuite() {
         });
         it('Delete nothing on non-matching query', () => {
             return service.router({
+                auth: "test@test.ru",
                 where: {
-                    id: ['>', 100],
+                    id: ['like', '%empty%'],
                 },
             }, deleteHeaders)
                 .reflect()
@@ -281,6 +288,7 @@ describe('Events Suite', function EventsSuite() {
         });
         it('Delete by query', () => {
             return service.router({
+                auth: "test@test.ru",
                 where: {
                     id: ['like', '%event%'],
                 },
@@ -293,6 +301,7 @@ describe('Events Suite', function EventsSuite() {
         });
         it('Fail to delete on invalid query', () => {
             return service.router({
+                auth: "test@test.ru",
                 invalid: {
                     id: 'invalid',
                 },
