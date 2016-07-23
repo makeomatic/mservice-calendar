@@ -1,44 +1,46 @@
 {
-    "name": "mservice-calendar",
-    "version": "1.0.0",
-    "description": "Calendar microservice",
-    "main": "./src/index.js",
-    "scripts": {
-        "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
-        "test-docker": "./test/test_docker.sh",
-        "start": "./bin/mservice.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/makeomatic/mservice-calendar.git"
-    },
-    "keywords": [
-        "calendar",
-        "microservice"
-    ],
-    "author": "Dmitry Gorbunov <atskiisotona@gmail.com>",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/makeomatic/mservice-calendar/issues"
-    },
-    "homepage": "https://github.com/makeomatic/mservice-calendar#readme",
-    "dependencies": {
-        "bluebird": "^3.4.0",
-        "bunyan": "^1.8.1",
-        "common-errors": "^0.5.7",
-        "lodash": "^4.13.1",
-        "moment": "^2.13.0",
-        "moment-timezone": "^0.5.4",
-        "ms-amqp-transport": "^3.1.0",
-        "ms-conf": "^2.1.0",
-        "ms-validation": "^2.0.0",
-        "mservice": "^2.6.0",
-        "node-crate": "^1.0.26",
-        "rrule": "^2.1.0"
-    },
-    "devDependencies": {
-        "codecov": "^1.0.1",
-        "istanbul": "^0.4.3",
-        "mocha": "^2.5.3"
-    }
+  "name": "mservice-calendar",
+  "version": "1.0.0",
+  "description": "Calendar microservice",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
+    "test-docker": "./test/test_docker.sh",
+    "start": "./bin/mservice.js",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/makeomatic/mservice-calendar.git"
+  },
+  "keywords": [
+    "calendar",
+    "microservice"
+  ],
+  "author": "Dmitry Gorbunov <atskiisotona@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/makeomatic/mservice-calendar/issues"
+  },
+  "homepage": "https://github.com/makeomatic/mservice-calendar#readme",
+  "dependencies": {
+    "bluebird": "^3.4.0",
+    "bunyan": "^1.8.1",
+    "common-errors": "^0.5.7",
+    "lodash": "^4.13.1",
+    "moment": "^2.13.0",
+    "moment-timezone": "^0.5.4",
+    "ms-amqp-transport": "^3.1.0",
+    "ms-conf": "^2.1.0",
+    "ms-validation": "^2.0.0",
+    "mservice": "^2.6.0",
+    "node-crate": "^1.0.26",
+    "rrule": "^2.1.0"
+  },
+  "devDependencies": {
+    "codecov": "^1.0.1",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3",
+    "semantic-release": "^4.3.5"
+  }
 }
