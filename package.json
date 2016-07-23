@@ -39,6 +39,7 @@
   "devDependencies": {
     "codecov": "^1.0.1",
     "istanbul": "^0.4.3",
+    "json": "^9.0.4",
     "mocha": "^2.5.3",
     "semantic-release": "^4.3.5"
   }
