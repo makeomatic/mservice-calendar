@@ -16,11 +16,10 @@ service.connect()
         return ping({
             address: crateServer.hostname,
             port: crateServer.port,
-            timeout: 10000,
+            timeout: 5000,
             attempts: 20
         }).then(function parsePing(pingResult) {
-            const err = pingResult.results[pingResult.results.length - 1].err;
-            if (err) {
+            if (!pingResult) {
                 throw new Error(`Could not connect to Crate.io server ${crateServer.host}`);
             }
         })
