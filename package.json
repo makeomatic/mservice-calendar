@@ -3,9 +3,10 @@
   "description": "Calendar microservice",
   "main": "./lib/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
-    "test-docker": "./test/test_docker.sh",
+    "test": "npm run lint && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
+    "test-docker": "npm run lint && ./test/test_docker.sh",
     "start": "./bin/mservice.js",
+    "lint": "eslint ./lib",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
