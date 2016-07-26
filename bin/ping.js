@@ -32,7 +32,7 @@ var ping = function(options, callback) {
 
     var check = function(options, callback) {
         if (i < options.attempts && !results) {
-            connect(options, callback);
+            setTimeout(() => { connect(options, callback) }, options.timeout);
         } else {
             callback(undefined, results);
         }
