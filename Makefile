@@ -17,7 +17,6 @@ build: docker tag
 
 %.docker:
 	@echo "building $@"
-	npm run compile
 	NODE_ENV=$(NODE_ENV) NODE_VERSION=$(NODE_VERSION) envsubst < "./Dockerfile" > $(DOCKERFILE)
 	docker build -t $(PKG_PREFIX_ENV) -f $(DOCKERFILE) .
 	rm $(DOCKERFILE)
