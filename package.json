@@ -1,11 +1,12 @@
 {
   "name": "mservice-calendar",
   "description": "Calendar microservice",
-  "main": "./src/index.js",
+  "main": "./lib/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
-    "test-docker": "./test/test_docker.sh",
+    "test": "npm run lint && ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test/suites/**/*",
+    "test-docker": "npm run lint && ./test/test_docker.sh",
     "start": "./bin/mservice.js",
+    "lint": "eslint ./lib",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "repository": {
@@ -25,9 +26,10 @@
   "dependencies": {
     "bluebird": "^3.4.0",
     "bunyan": "^1.8.1",
-    "common-errors": "^0.5.7",
-    "lodash": "^4.13.1",
-    "moment": "^2.13.0",
+    "common-errors": "^1.0.0",
+    "is": "^3.1.0",
+    "lodash": "^4.14.0",
+    "moment": "^2.14.1",
     "moment-timezone": "^0.5.4",
     "ms-amqp-transport": "^3.1.0",
     "ms-conf": "^2.1.0",
@@ -37,7 +39,12 @@
     "rrule": "^2.1.0"
   },
   "devDependencies": {
+    "babel-eslint": "^6.1.2",
     "codecov": "^1.0.1",
+    "eslint": "^3.1.1",
+    "eslint-config-airbnb-base": "^5.0.0",
+    "eslint-plugin-import": "^1.12.0",
+    "eslint-plugin-promise": "^2.0.0",
     "istanbul": "^0.4.3",
     "json": "^9.0.4",
     "mocha": "^2.5.3",

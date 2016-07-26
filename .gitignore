@@ -29,7 +29,6 @@ build/Release
 node_modules
 
 # compiled source code
-lib
 .env
 .idea
 data
