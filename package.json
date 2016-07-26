@@ -49,5 +49,8 @@
     "json": "^9.0.4",
     "mocha": "^2.5.3",
     "semantic-release": "^4.3.5"
+  },
+  "release": {
+    "verifyConditions": []
   }
 }
