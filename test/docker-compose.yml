@@ -8,7 +8,7 @@ services:
       - crateio
     command: tail -f /dev/null
     volumes:
-      - ${PWD}:/lib
+      - ${PWD}:/src
     environment:
       - CRATE_HOST=crateio
 
