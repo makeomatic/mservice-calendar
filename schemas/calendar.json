@@ -3,8 +3,8 @@
   "type": "object",
   "required": ["start", "end"],
   "properties": {
-    "start": { "type": "number" },
-    "end": { "type": "number" }
+    "start": { "type": "number", "description": "Calendar start datetime" },
+    "end": { "type": "number", "description": "Calendar end datetime" }
   },
   "additionalProperties": false
 }

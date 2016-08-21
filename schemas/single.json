@@ -1,0 +1,9 @@
+{
+  "id": "single",
+  "type": "object",
+  "required": [ "id"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1, "description": "Unique ID of event" }
+  },
+  "additionalProperties": false
+}

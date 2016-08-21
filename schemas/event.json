@@ -1,24 +1,40 @@
 {
   "id": "event",
   "type": "object",
-  "required": ["id", "owner", "title", "description", "recurring", "start_time", "end_time", "timezone"],
+  "required": [ "id", "owner", "title", "description", "recurring", "start_time", "end_time", "timezone" ],
   "properties": {
-    "id": { "type": "string", "minLength": 1 },
-    "owner": { "type": "string", "minLength": 1 },
-    "hosts": { "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [] },
-    "subscribers": { "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [] },
-    "notifications": { "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [] },
-    "title": { "type": "string", "minLength": 3 },
-    "description": { "type": "string", "minLength": 3 },
-    "picture": { "type": "string", "minLength": 3 },
-    "link": { "type": "string", "minLength": 3 },
-    "tags": { "type": "array", "items": { "type": "string", "minLength": 3 }, "default": [] },
-    "rrule": { "type": "string", "minLength": 3 },
-    "recurring": { "type": "boolean", "default": false },
-    "start_time": { "type": "integer" },
-    "end_time": { "type": "integer" },
-    "duration": { "type": "string", "minLength": 1 },
-    "timezone": { "type": "string", "minLength": 1 }
+    "id": { "type": "string", "minLength": 1, "description": "Unique ID of event, must be passed on creation" },
+    "owner": { "type": "string", "minLength": 1, "description": "Event owner who has full access to event operations" },
+    "hosts": {
+      "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [ ],
+      "description": "Event hosts, e.g. DJs"
+    },
+    "subscribers": {
+      "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [ ], "description": "Event attendants"
+    },
+    "notifications": {
+      "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [ ],
+      "description": "Subscribers to be notified about event changes or time"
+    },
+    "title": { "type": "string", "minLength": 3, "description": "Event name" },
+    "description": { "type": "string", "minLength": 3, "description": "Event description" },
+    "picture": { "type": "string", "minLength": 3, "description": "Event image" },
+    "link": { "type": "string", "minLength": 3, "description": "Additional link" },
+    "tags": {
+      "type": "array", "items": { "type": "string", "minLength": 3 }, "default": [ ],
+      "description": "Tags to search events"
+    },
+    "rrule": {
+      "type": "string", "minLength": 3,
+      "description": "RRule to describe event recurrence. See https://github.com/jkbrzt/rrule"
+    },
+    "recurring": {
+      "type": "boolean", "default": false, "description": "If event is recurring. Requires RRule to be set"
+    },
+    "start_time": { "type": "integer", "description": "Event start datetime, Unix timestamp" },
+    "end_time": { "type": "integer", "description": "Event end datetime, Unix timestamp" },
+    "duration": { "type": "string", "minLength": 1, "description": "Event duration" },
+    "timezone": { "type": "string", "minLength": 1, "description": "Event timezone" }
   },
   "additionalProperties": false
 }
