@@ -21,7 +21,11 @@ if ! [ -x "$(which docker-compose)" ]; then
 fi
 
 # add trap handler
-trap "$COMPOSE stop; $COMPOSE rm -f -v;" EXIT
+if [[ x"$CI" == x"true" ]]; then
+  trap "$COMPOSE stop; $COMPOSE rm -f -v;" EXIT
+fi
+
+# put up the container
 $COMPOSE up -d
 
 while ! curl -s localhost:4200 > /dev/null
