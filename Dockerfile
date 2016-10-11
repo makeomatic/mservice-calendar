@@ -4,7 +4,7 @@ WORKDIR /src
 
 COPY package.json .
 RUN \
-  apk --no-cache add libpq \
+  apk --no-cache add postgresql \
   && apk --no-cache add --virtual .buildDeps \
     build-base \
     python \
@@ -12,6 +12,7 @@ RUN \
     curl \
     openssl \
     findutils \
+    postgresql-dev \
   && npm install --production \
   && npm dedupe \
   && apk del \
