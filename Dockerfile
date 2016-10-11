@@ -4,12 +4,14 @@ WORKDIR /src
 
 COPY package.json .
 RUN \
+  apk --no-cache add libpq \
   apk --no-cache add --virtual .buildDeps \
     build-base \
     python \
     git \
     curl \
     openssl \
+    find \
   && npm install --production \
   && npm dedupe \
   && apk del \
