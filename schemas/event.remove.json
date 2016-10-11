@@ -1,9 +1,8 @@
 {
-    "id": "delete",
     "type": "object",
     "required": [ "auth" ],
     "properties": {
-        "id": { "type": "string", "description": "Event ID" },
+        "id": { "type": "integer", "description": "Event ID" },
         "auth": { "type": "string", "minLength": 1, "description": "User performing operation. Only owner will be allowed to delete event." },
         "where": { "type": "object", "description": "Delete by query clause" }
     },

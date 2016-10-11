@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "required": ["start", "end"],
+  "properties": {
+    "start": { "type": "string", "description": "Calendar start datetime, ISO 8601 with TZ" },
+    "end": { "type": "string", "description": "Calendar end datetime, ISO 8601 with TZ" }
+  },
+  "additionalProperties": false
+}

@@ -24,12 +24,6 @@ fi
 trap "$COMPOSE stop; $COMPOSE rm -f -v;" EXIT
 $COMPOSE up -d
 
-while ! curl -s localhost:4200 > /dev/null
-do
-  >&2 echo "waiting for crate"
-  sleep 3
-done
-
 # rebuild if needed
 if [[ "$SKIP_REBUILD" != "1" ]]; then
   echo "rebuilding native dependencies..."

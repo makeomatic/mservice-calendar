@@ -1,9 +1,8 @@
 {
-    "id": "subscribe",
     "type": "object",
     "required": ["event", "subscriber"],
     "properties": {
-        "event": { "type": "string", "minLength": 1 },
+        "event": { "type": "integer" },
         "subscriber": { "type": "string", "minLength": 1 },
         "notify": { "type": "boolean", "default": true }
     },

@@ -3,14 +3,17 @@ version: '2'
 services:
   tester:
     container_name: tester
-    image: makeomatic/node:6.2.2-tester-glibc
+    image: makeomatic/node:6.2.2-tester
     depends_on:
-      - crateio
+      - postgres
+      - rabbitmq
     command: tail -f /dev/null
     volumes:
       - ${PWD}:/src
+    working_dir: /src
     environment:
-      - CRATE_HOST=crateio
+      NODE_ENV: "test"
+      DEBUG: ${DEBUG}
 
   rabbitmq:
     expose:
@@ -19,9 +22,9 @@ services:
     container_name: rabbitmq
     hostname: rabbitmq
 
-  crateio:
-    container_name: crateio
-    hostname: crateio
-    image: crate
-    ports:
-      - "4200:4200"
+  postgres:
+    expose:
+      - "5432"
+    image: postgres:9.5.4
+    container_name: pg
+    hostname: pg

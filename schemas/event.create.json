@@ -1,9 +1,7 @@
 {
-  "id": "event",
   "type": "object",
-  "required": [ "id", "owner", "title", "description", "recurring", "start_time", "end_time", "timezone" ],
+  "required": [ "owner", "title", "description", "recurring", "start_time", "end_time" ],
   "properties": {
-    "id": { "type": "string", "minLength": 1, "description": "Unique ID of event, must be passed on creation" },
     "owner": { "type": "string", "minLength": 1, "description": "Event owner who has full access to event operations" },
     "hosts": {
       "type": "array", "items": { "type": "string", "minLength": 1 }, "default": [ ],
@@ -31,10 +29,9 @@
     "recurring": {
       "type": "boolean", "default": false, "description": "If event is recurring. Requires RRule to be set"
     },
-    "start_time": { "type": "integer", "description": "Event start datetime, Unix timestamp" },
-    "end_time": { "type": "integer", "description": "Event end datetime, Unix timestamp" },
-    "duration": { "type": "string", "minLength": 1, "description": "Event duration" },
-    "timezone": { "type": "string", "minLength": 1, "description": "Event timezone" }
+    "start_time": { "type": "string", "description": "Event start datetime, ISO 8601 with timezone" },
+    "end_time": { "type": "string", "description": "Event end datetime, ISO 8601 with timezone" },
+    "duration": { "type": "string", "minLength": 1, "description": "Event duration" }
   },
   "additionalProperties": false
 }
