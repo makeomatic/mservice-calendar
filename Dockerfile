@@ -5,7 +5,7 @@ WORKDIR /src
 COPY package.json .
 RUN \
   apk --no-cache add libpq \
-  apk --no-cache add --virtual .buildDeps \
+  && apk --no-cache add --virtual .buildDeps \
     build-base \
     python \
     git \
