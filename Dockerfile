@@ -11,7 +11,7 @@ RUN \
     git \
     curl \
     openssl \
-    find \
+    findutils \
   && npm install --production \
   && npm dedupe \
   && apk del \
