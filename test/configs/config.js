@@ -16,5 +16,6 @@ global.SERVICES = {
       user: 'postgres',
       password: '',
     },
+    delay: 1000,
   },
 };

@@ -16,6 +16,10 @@ describe('Events Suite', function EventsSuite() {
     return service.connect();
   });
 
+  before('wait service', (done) => {
+    setTimeout(done, 2000);
+  });
+
   const uri = {
     create: 'calendar.event.create',
     update: 'calendar.event.update',

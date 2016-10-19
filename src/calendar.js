@@ -11,6 +11,12 @@ const defaultConfig = globFiles(path.resolve(__dirname, 'configs'));
 
 const Promise = require('bluebird');
 
+function delay(timeout) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeout);
+  });
+}
+
 class Calendar extends MService {
   /**
    * @param config
@@ -19,6 +25,10 @@ class Calendar extends MService {
     super(_.merge({}, defaultConfig, config));
 
     const init = Promise.coroutine(function* initServices() {
+      if (this.config.storage.delay) {
+        this.log.info(`Delaying Calendar service launch by ${this.config.storage.delay} ms`);
+        yield delay(this.config.storage.delay);
+      }
       const storage = new StorageService(this.config.storage);
       const event = new EventService(storage);
       const calendar = new CalendarService(event);
@@ -35,7 +45,7 @@ class Calendar extends MService {
       this.log.info('Started Calendar service...');
     }).bind(this);
 
-    init();
+    init().done();
   }
 }
 
