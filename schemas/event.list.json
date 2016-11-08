@@ -1,11 +1,25 @@
 {
   "type": "object",
-  "required": ["where"],
+  "required": [
+    "where"
+  ],
   "properties": {
-    "where": { "type": "object" },
-    "start": { "type": "number" },
-    "limit": { "type": "number" },
-    "order": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+    "where": {
+      "type": "object"
+    },
+    "start": {
+      "type": "number"
+    },
+    "limit": {
+      "type": "number"
+    },
+    "order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
   },
   "additionalProperties": false
 }

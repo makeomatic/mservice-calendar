@@ -1,11 +1,20 @@
 {
   "id": "host",
   "type": "object",
-  "required": ["name"],
+  "required": [
+    "name"
+  ],
   "properties": {
-    "id": { "type": "integer" },
-    "external_id": { "type": "string", "minLength": 1 },
-    "name": { "type": "string" }
+    "id": {
+      "type": "integer"
+    },
+    "external_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string"
+    }
   },
   "additionalProperties": false
 }

@@ -1,10 +1,21 @@
 {
-    "type": "object",
-    "required": ["event", "subscriber"],
-    "properties": {
-        "event": { "type": "integer" },
-        "subscriber": { "type": "string", "minLength": 1 },
-        "notify": { "type": "boolean", "default": true }
+  "type": "object",
+  "required": [
+    "event",
+    "subscriber"
+  ],
+  "properties": {
+    "event": {
+      "type": "integer"
     },
-    "additionalProperties": false
+    "subscriber": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notify": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false
 }
