@@ -6,7 +6,6 @@ const { coroutine } = require('bluebird');
  * @apiName build
  * @apiGroup Calendar
  * @apiSchema {jsonschema=../../schemas/calendar.build.json} apiParam
- * @apiSchema {jsonschema=../../schemas/calendar.build.response.json} apiSuccess
  */
 function CalendarBuildAction({ params }) {
   const { calendar } = this.services;

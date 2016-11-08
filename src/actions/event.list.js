@@ -6,7 +6,6 @@ const { coroutine } = require('bluebird');
  * @apiName event.list
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.list.json} apiParam
- * @apiSchema {jsonschema=../../schemas/event.list.response.json} apiSuccess
  */
 function EventListAction({ params }) {
   const { event } = this.services;
