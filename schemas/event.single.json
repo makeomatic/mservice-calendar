@@ -1,8 +1,13 @@
 {
   "type": "object",
-  "required": [ "id"],
+  "required": [
+    "id"
+  ],
   "properties": {
-    "id": { "type": "integer", "description": "Unique ID of event" }
+    "id": {
+      "type": "integer",
+      "description": "Unique ID of event"
+    }
   },
   "additionalProperties": false
 }
