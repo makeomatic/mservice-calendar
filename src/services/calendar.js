@@ -1,4 +1,4 @@
-const { map, reduce, concat } = require('lodash');
+const { map, reduce, concat, extend } = require('lodash');
 const moment = require('moment-timezone');
 const RRule = require('rrule').RRule;
 const Promise = require('bluebird');
@@ -10,13 +10,19 @@ class Calendar {
 
   * build(data) {
     // select all events
-    const events = yield Promise.coroutine(this.list)({ where: {} });
+    const filter = {
+      where: {},
+    };
+    if (data.owner) {
+      filter.where['owner'] = data.owner; // eslint-disable-line
+    }
+    const events = yield Promise.coroutine(this.list)(filter);
+
+    const start = moment(data.start);
+    const end = moment(data.end);
 
     // for each event build it's schedule
     const calendar = reduce(events, (acc, event) => {
-      const start = moment(data.start);
-      const end = moment(data.end);
-
       const startEvent = moment(event.start_time);
       const endEvent = moment(event.end_time);
 
@@ -73,11 +79,7 @@ class Calendar {
       }
 
       if (schedule != null) {
-        const result = {
-          id: event.id,
-          title: event.title,
-          schedule,
-        };
+        const result = extend(event, { schedule });
 
         return concat(acc, result);
       }

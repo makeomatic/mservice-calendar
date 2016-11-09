@@ -238,10 +238,11 @@ describe('Events Suite', function EventsSuite() {
       .amqp.publishAndWait(uri.build, {
         start: moment('2100-08-01').tz('Asia/Irkutsk').format(),
         end: moment('2100-10-01').tz('Asia/Irkutsk').format(),
+        owner: 'test@test.ru',
       })
       .reflect()
       .then(result => {
-        debug(result);
+        debug(result, true);
         assert(result.isFulfilled());
         return null;
       })

@@ -14,6 +14,10 @@
       "type": "string",
       "description": "Calendar end datetime, ISO 8601 with TZ",
       "format": "date-time"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Use events only from this owner"
     }
   },
   "additionalProperties": false
