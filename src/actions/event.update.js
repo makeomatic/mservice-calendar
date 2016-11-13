@@ -1,4 +1,4 @@
-const { coroutine } = require('bluebird');
+const isAdmin = require('../middlewares/isAdmin');
 
 /**
  * @api {http} <prefix>.event.create Update old event
@@ -8,12 +8,12 @@ const { coroutine } = require('bluebird');
  * @apiSchema {jsonschema=../../schemas/event.update.json} apiParam
  */
 function EventUpdateAction({ params }) {
-  const { event } = this.services;
-  const method = event.update.bind(event);
-  return coroutine(method)(params);
+  return this.services.event.update(params);
 }
 
+EventUpdateAction.auth = 'token';
+EventUpdateAction.allowed = isAdmin;
 EventUpdateAction.schema = 'event.update';
-EventUpdateAction.transports = ['amqp'];
+EventUpdateAction.transports = ['http'];
 
 module.exports = EventUpdateAction;

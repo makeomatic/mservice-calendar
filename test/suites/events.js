@@ -16,9 +16,7 @@ describe('Events Suite', function EventsSuite() {
     return service.connect();
   });
 
-  before('wait service', (done) => {
-    setTimeout(done, 2000);
-  });
+  before('wait service', () => Promise.delay(2000));
 
   const uri = {
     create: 'calendar.event.create',
@@ -54,47 +52,49 @@ describe('Events Suite', function EventsSuite() {
     it('Success one-time event', () => service
       .amqp.publishAndWait(uri.create, event1)
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Success recurring event', () => service
       .amqp.publishAndWait(uri.create, event2)
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Fail with missing rrule for recurring events', () => service
       .amqp.publishAndWait(uri.create, assign(omit(event2, 'rrule'), { id: 'event2_no_rrule' }))
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
 
-    it('Fail with invalid rrule for recurring events', () => service
+    it('Fail with invalid rrule for recurring events', () => (
+      service
       .amqp.publishAndWait(uri.create, assign({}, event2, { id: 'event2_invalid_rrule', rrule: 'invalid' }))
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
       })
-    );
+    ));
 
-    it('Fail on invalid schema', () => service
+    it('Fail on invalid schema', () => (
+      service
       .amqp.publishAndWait(uri.create, { id: 'invalid', invalid: true })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
       })
-    );
+    ));
   });
 
   describe('Update', function EventUpdateSuite() {
@@ -107,11 +107,11 @@ describe('Events Suite', function EventsSuite() {
         },
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Add subscribers', () => service
@@ -121,11 +121,11 @@ describe('Events Suite', function EventsSuite() {
         notify: true,
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Fail on invalid schema', () => service
@@ -135,10 +135,10 @@ describe('Events Suite', function EventsSuite() {
         wrong: 'field',
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
 
     it('Fail on missing id', () => service
@@ -146,10 +146,10 @@ describe('Events Suite', function EventsSuite() {
         description: 'Updated description',
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
 
     it('Fail for non-existent id', () => service
@@ -158,10 +158,10 @@ describe('Events Suite', function EventsSuite() {
         description: 'Updated description',
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
   });
 
@@ -169,7 +169,7 @@ describe('Events Suite', function EventsSuite() {
     it('Return single record', () => service
       .amqp.publishAndWait(uri.single, { id: 1 })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         const instance = result.value();
@@ -177,7 +177,7 @@ describe('Events Suite', function EventsSuite() {
         assert.notEqual(instance.notifications.indexOf('Vasya'), -1);
         assert.equal(instance.title, 'Test event 1');
         return null;
-      })
+      }),
     );
 
     it('Return empty list for non-matching query', () => service
@@ -187,12 +187,12 @@ describe('Events Suite', function EventsSuite() {
         },
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         assert.equal(result.value().length, 0);
         return null;
-      })
+      }),
     );
 
     it('Return list', () => service
@@ -202,12 +202,12 @@ describe('Events Suite', function EventsSuite() {
         },
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         assert.notEqual(result.value().length, 0);
         return null;
-      })
+      }),
     );
 
     it('Fail to return single record for non-existent id', () => service
@@ -215,10 +215,10 @@ describe('Events Suite', function EventsSuite() {
         id: 100500,
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
 
     it('Fail to return list on invalid query', () => service
@@ -226,10 +226,10 @@ describe('Events Suite', function EventsSuite() {
         invalid: true,
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
   });
 
@@ -241,11 +241,11 @@ describe('Events Suite', function EventsSuite() {
         owner: 'test@test.ru',
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result, true);
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
   });
 
@@ -256,11 +256,11 @@ describe('Events Suite', function EventsSuite() {
         auth: 'test@test.ru',
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Delete nothing on non-matching query', () => service
@@ -271,11 +271,11 @@ describe('Events Suite', function EventsSuite() {
         },
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Delete by query', () => service
@@ -286,11 +286,11 @@ describe('Events Suite', function EventsSuite() {
         },
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         debug(result);
         assert(result.isFulfilled());
         return null;
-      })
+      }),
     );
 
     it('Fail to delete on invalid query', () => service
@@ -301,10 +301,10 @@ describe('Events Suite', function EventsSuite() {
         },
       })
       .reflect()
-      .then(result => {
+      .then((result) => {
         assert(result.isRejected());
         return null;
-      })
+      }),
     );
   });
 });

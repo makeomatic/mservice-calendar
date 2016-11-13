@@ -4,9 +4,8 @@
     "owner",
     "title",
     "description",
-    "recurring",
-    "start_time",
-    "end_time"
+    "rrule",
+    "duration"
   ],
   "properties": {
     "owner": {
@@ -53,47 +52,31 @@
     },
     "picture": {
       "type": "string",
-      "minLength": 3,
-      "description": "Event image"
+      "description": "Event image",
+      "format": "uri"
     },
     "link": {
       "type": "string",
-      "minLength": 3,
-      "description": "Additional link"
+      "description": "Additional link",
+      "format": "uri"
     },
     "tags": {
       "type": "array",
       "items": {
         "type": "string",
-        "minLength": 3
+        "minLength": 1
       },
       "default": [],
       "description": "Tags to search events"
     },
     "rrule": {
       "type": "string",
-      "minLength": 3,
       "description": "RRule to describe event recurrence. See https://github.com/jkbrzt/rrule"
     },
-    "recurring": {
-      "type": "boolean",
-      "default": false,
-      "description": "If event is recurring. Requires RRule to be set"
-    },
-    "start_time": {
-      "type": "string",
-      "description": "Event start datetime, ISO 8601 with timezone",
-      "format": "date-time"
-    },
-    "end_time": {
-      "type": "string",
-      "description": "Event end datetime, ISO 8601 with timezone",
-      "format": "date-time"
-    },
     "duration": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Event duration"
+      "type": "integer",
+      "minimum": 1,
+      "description": "Event duration, in minutes"
     }
   },
   "additionalProperties": false

@@ -13,23 +13,28 @@
 module.exports = {
   tableName: 'events',
   schema: function create(table) {
-    table.increments();
+    table.increments('id').primary();
 
+    // who does it belong to?
     table.string('owner');
+
+    // name of the show, description of the show
     table.string('title');
     table.text('description');
+
+    // extra meta, not used at the moment
     table.string('link');
     table.string('picture');
 
+    // specifies rrule
     table.text('rrule');
-    table.boolean('recurring').defaultTo(false);
+    table.integer('duration');
 
-    table.timestamp('start_time');
-    table.timestamp('end_time');
-    table.string('duration');
-
+    // array of djs & music genres
     table.specificType('tags', 'varchar(255)[]');
     table.specificType('hosts', 'varchar(255)[]');
+
+    // not used at the moment
     table.specificType('subscribers', 'varchar(255)[]');
     table.specificType('notifications', 'varchar(255)[]');
   },

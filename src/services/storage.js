@@ -1,20 +1,17 @@
-const knex = require('knex');
+const EventModel = require('../models/events');
 const { forEach, isArray } = require('lodash');
 
-const EventModel = require('../models/events');
-
 function createFilter(filter, query) {
-  if (filter.limit) {
-    query.limit(filter.limit);
-  }
-  if (filter.start) {
-    query.offset(filter.start);
-  }
+  if (filter.limit) query.limit(filter.limit);
+
+  if (filter.start) query.offset(filter.start);
+
   if (filter.order) {
     forEach(filter.order, (direction, field) => {
       query.orderBy(field, direction);
     });
   }
+
   if (filter.where) {
     forEach(filter.where, (operation, field) => {
       if (isArray(operation)) {
@@ -24,17 +21,13 @@ function createFilter(filter, query) {
       }
     });
   }
+
   return query;
 }
 
 class Storage {
-  constructor(config) {
-    const client = this.client = knex({
-      client: 'pg',
-      debug: config.debug,
-      connection: config.connection,
-      searchPath: 'public,social',
-    });
+  constructor(knex) {
+    const client = this.client = knex;
 
     /**
      * Perform an "Upsert" using the "INSERT ... ON CONFLICT ... " syntax in PostgreSQL 9.5

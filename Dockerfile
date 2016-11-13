@@ -1,11 +1,11 @@
-FROM makeomatic/node:6.5.0
+FROM makeomatic/node:7.1.0
 
 WORKDIR /src
 
 COPY package.json .
 RUN \
-  apk --no-cache add postgresql \
-  && apk --no-cache add --virtual .buildDeps \
+  apk --update add postgresql \
+  && apk add --virtual .buildDeps \
     build-base \
     python \
     git \
@@ -21,7 +21,9 @@ RUN \
   && rm -rf \
     /tmp/* \
     /root/.node-gyp \
-    /root/.npm
+    /root/.npm \
+    /etc/apk/cache/* \
+    /var/cache/apk/*
 
 COPY . /src
 RUN  chown -R node /src

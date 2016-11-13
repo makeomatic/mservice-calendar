@@ -8,14 +8,7 @@ const EventService = require('./services/event');
 const CalendarService = require('./services/calendar');
 
 const defaultConfig = globFiles(path.resolve(__dirname, 'configs'));
-
 const Promise = require('bluebird');
-
-function delay(timeout) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, timeout);
-  });
-}
 
 class Calendar extends MService {
   /**
@@ -23,29 +16,36 @@ class Calendar extends MService {
    */
   constructor(config = {}) {
     super(_.merge({}, defaultConfig, config));
+    this.initServices = Promise.coroutine(this.initServices);
+  }
 
-    const init = Promise.coroutine(function* initServices() {
-      if (this.config.storage.delay) {
-        this.log.info(`Delaying Calendar service launch by ${this.config.storage.delay} ms`);
-        yield delay(this.config.storage.delay);
-      }
-      const storage = new StorageService(this.config.storage);
-      const event = new EventService(storage);
-      const calendar = new CalendarService(event);
+  connect() {
+    return super
+      .connect()
+      .bind(this)
+      .then(this.initServices);
+  }
 
-      // sequentially initialize services
-      yield storage.init();
+  * initServices() {
+    if (this.config.storage.delay) {
+      this.log.info(`Delaying Calendar service launch by ${this.config.storage.delay} ms`);
+      yield Promise.delay(this.config.storage.delay);
+    }
 
-      this.services = {
-        storage,
-        event,
-        calendar,
-      };
+    const storage = new StorageService(this.knex);
+    const event = new EventService(storage);
+    const calendar = new CalendarService(event);
 
-      this.log.info('Started Calendar service...');
-    }).bind(this);
+    // sequentially initialize services
+    yield storage.init();
 
-    init().done();
+    this.services = {
+      storage,
+      event,
+      calendar,
+    };
+
+    this.log.info('Started Calendar service...');
   }
 }
 

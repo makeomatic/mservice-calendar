@@ -1,32 +1,58 @@
 const Errors = require('common-errors');
 const RRule = require('rrule').RRule;
 const moment = require('moment-timezone');
+const assert = require('assert');
 
+const { coroutine } = require('../utils/getMethods');
 const { map, compact, concat, merge } = require('lodash');
+
+const BannedRRuleFreq = {
+  [RRule.HOURLY]: true,
+  [RRule.MINUTELY]: true,
+  [RRule.SECONDLY]: true,
+  [RRule.YEARLY]: true,
+};
 
 class Event {
   constructor(storage) {
+    coroutine(this);
     this.storage = storage;
   }
 
   * create(data) {
-    if (data.recurring) {
-      // if missing rrule, throw
-      if (data.rrule === undefined) {
-        throw new Errors.Argument('Recurring rules require rrule attribute');
+    // parse rrule to see if it's correct
+    try {
+      const opts = RRule.parseString(data.rrule);
+      const now = moment();
+
+      // check frequency
+      assert.ifError(BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
+
+      // make sure count is not > 365 and if not provided set to MAX the event count
+      if (!opts.count || opts.count > 365) {
+        opts.count = 365;
       }
 
-      if (data.duration === undefined) {
-        throw new Errors.Argument('Recurring rules require duration attribute');
-      }
+      assert(
+        moment(opts.until).subtract(1, 'year').isBefore(now),
+        'UNTIL must be within a year from now',
+      );
 
-      // parse rrule to see if it's correct
-      try {
-        RRule.parseString(data.rrule);
-      } catch (e) {
-        throw new Errors.Argument('Invalid rrule', e);
-      }
+      assert(
+        moment(opts.dtstart).add(1, 'year').isAfter(now),
+        'DTSTART must be without the last year',
+      );
+
+      // do not cache RRule, we are not likely to work with same events
+      data.parsedRRule = new RRule(opts, { noCache: true });
+    } catch (e) {
+      throw new Errors.HttpStatusError(400, `Invalid RRule: ${e.message}`);
     }
+
+    // we have 2 tables:
+    // 1. table of events - consists raw data with rrule
+    // 2. table of expanded event time frames - it's a foreign key of id with cascade on delete
+    // on update we manually recalculate all the data ranges, remove old ones & insert new ones
 
     return yield this.storage.createEvent(data);
   }

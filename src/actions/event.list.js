@@ -1,5 +1,3 @@
-const { coroutine } = require('bluebird');
-
 /**
  * @api {http} <prefix>.event.list List events registered in the system
  * @apiVersion 1.0.0
@@ -8,12 +6,10 @@ const { coroutine } = require('bluebird');
  * @apiSchema {jsonschema=../../schemas/event.list.json} apiParam
  */
 function EventListAction({ params }) {
-  const { event } = this.services;
-  const method = event.list.bind(event);
-  return coroutine(method)(params);
+  return this.services.event.list(params);
 }
 
 EventListAction.schema = 'event.list';
-EventListAction.transports = ['amqp'];
+EventListAction.transports = ['http'];
 
 module.exports = EventListAction;
