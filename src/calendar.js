@@ -16,6 +16,7 @@ class Calendar extends MService {
    */
   constructor(config = {}) {
     super(_.merge({}, defaultConfig, config));
+    this.addConnector(MService.ConnectorsTypes.migration, () => this.migrate('knex'));
     this.initServices = Promise.coroutine(this.initServices);
   }
 
@@ -35,9 +36,6 @@ class Calendar extends MService {
     const storage = new StorageService(this.knex);
     const event = new EventService(storage);
     const calendar = new CalendarService(event);
-
-    // sequentially initialize services
-    yield storage.init();
 
     this.services = {
       storage,

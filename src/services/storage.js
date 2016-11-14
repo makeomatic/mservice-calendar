@@ -56,15 +56,6 @@ class Storage {
     };
   }
 
-  init() {
-    const client = this.client;
-    return client.schema.hasTable(EventModel.tableName).then((exists) => {
-      if (exists) return null;
-
-      return client.schema.createTable(EventModel.tableName, EventModel.schema);
-    });
-  }
-
   createEvent(data) {
     return this.client(EventModel.tableName).insert(data);
   }

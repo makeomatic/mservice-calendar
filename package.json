@@ -29,6 +29,7 @@
     "bluebird": "^3.4.6",
     "bunyan": "^1.8.4",
     "common-errors": "^1.0.0",
+    "hapi": "^15.2.0",
     "is": "^3.2.0",
     "knex": "^0.12.6",
     "lodash": "^4.16.6",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "apidoc": "^0.16.1",
     "apidoc-plugin-schema": "0.0.9",
+    "babel-eslint": "^7.1.0",
     "codecov": "^1.0.1",
     "dotenv": "^2.0.0",
     "eslint": "^3.10.0",
