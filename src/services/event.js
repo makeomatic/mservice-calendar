@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const Errors = require('common-errors');
 const RRule = require('rrule').RRule;
 const moment = require('moment-timezone');
@@ -19,42 +20,47 @@ class Event {
     this.storage = storage;
   }
 
-  * create(data) {
-    // parse rrule to see if it's correct
-    try {
-      const opts = RRule.parseString(data.rrule);
-      const now = moment();
+  static parseRRule(data) {
+    const opts = RRule.parseString(data.rrule);
+    const now = moment();
 
-      // check frequency
-      assert.ifError(BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
+    // check frequency
+    assert.ifError(BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
 
-      // make sure count is not > 365 and if not provided set to MAX the event count
-      if (!opts.count || opts.count > 365) {
-        opts.count = 365;
-      }
-
-      assert(
-        moment(opts.until).subtract(1, 'year').isBefore(now),
-        'UNTIL must be within a year from now'
-      );
-
-      assert(
-        moment(opts.dtstart).add(1, 'year').isAfter(now),
-        'DTSTART must be without the last year'
-      );
-
-      // do not cache RRule, we are not likely to work with same events
-      data.parsedRRule = new RRule(opts, { noCache: true });
-    } catch (e) {
-      throw new Errors.HttpStatusError(400, `Invalid RRule: ${e.message}`);
+    // make sure count is not > 365 and if not provided set to MAX the event count
+    if (!opts.count || opts.count > 365) {
+      opts.count = 365;
     }
 
+    assert(
+      moment(opts.until).subtract(1, 'year').isBefore(now),
+      'UNTIL must be within a year from now'
+    );
+
+    assert(
+      moment(opts.dtstart).add(1, 'year').isAfter(now),
+      'DTSTART must be without the last year'
+    );
+
+    // do not cache RRule, we are not likely to work with same events
+    data.parsedRRule = new RRule(opts, { noCache: true });
+
+    return data;
+  }
+
+  * create(data) {
     // we have 2 tables:
     // 1. table of events - consists raw data with rrule
     // 2. table of expanded event time frames - it's a foreign key of id with cascade on delete
     // on update we manually recalculate all the data ranges, remove old ones & insert new ones
-
-    return yield this.storage.createEvent(data);
+    return yield Promise
+      .resolve(data)
+      .then(Event.parseRRule)
+      .catch((e) => {
+        throw new Errors.HttpStatusError(400, `Invalid RRule: ${e.message}`);
+      })
+      .bind(this.storage)
+      .then(this.storage.createEvent);
   }
 
   * update(data) {
