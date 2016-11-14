@@ -1,4 +1,5 @@
 const { coroutine } = require('bluebird');
+const is = require('is');
 
 function getAllMethodNames(_obj) {
   const methods = new Set();
@@ -15,6 +16,6 @@ module.exports = getAllMethodNames;
 module.exports.coroutine = function applyCoroutine(obj) {
   getAllMethodNames(obj).forEach((method) => {
     const fn = obj[method];
-    obj[method] = coroutine(fn);
+    if (is.fn(fn)) obj[method] = coroutine(fn);
   });
 };

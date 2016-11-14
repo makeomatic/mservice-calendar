@@ -2,7 +2,7 @@ module.exports = {
   http: {
     server: {
       handler: 'hapi',
-      attachSocketIO: true,
+      attachSocketIO: false,
       port: 3000,
       handlerConfig: {
         connection: {

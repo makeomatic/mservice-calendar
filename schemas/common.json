@@ -1,0 +1,9 @@
+{
+  "id": "common.json",
+  "definitions": {
+    "token": {
+      "type": "string",
+      "description": "Auth token"
+    }
+  }
+}

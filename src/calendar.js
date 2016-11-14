@@ -6,9 +6,9 @@ const path = require('path');
 const StorageService = require('./services/storage');
 const EventService = require('./services/event');
 const CalendarService = require('./services/calendar');
+const UserService = require('./services/user');
 
 const defaultConfig = globFiles(path.resolve(__dirname, 'configs'));
-const Promise = require('bluebird');
 
 class Calendar extends MService {
   /**
@@ -17,7 +17,10 @@ class Calendar extends MService {
   constructor(config = {}) {
     super(_.merge({}, defaultConfig, config));
     this.addConnector(MService.ConnectorsTypes.migration, () => this.migrate('knex'));
-    this.initServices = Promise.coroutine(this.initServices);
+    this.services = {};
+    this.on('plugin:connect:amqp', (amqp) => {
+      this.services.user = new UserService(this.config.users, amqp);
+    });
   }
 
   connect() {
@@ -27,22 +30,11 @@ class Calendar extends MService {
       .then(this.initServices);
   }
 
-  * initServices() {
-    if (this.config.storage.delay) {
-      this.log.info(`Delaying Calendar service launch by ${this.config.storage.delay} ms`);
-      yield Promise.delay(this.config.storage.delay);
-    }
+  initServices() {
+    const storage = this.services.storage = new StorageService(this.knex);
+    const event = this.services.event = new EventService(storage);
 
-    const storage = new StorageService(this.knex);
-    const event = new EventService(storage);
-    const calendar = new CalendarService(event);
-
-    this.services = {
-      storage,
-      event,
-      calendar,
-    };
-
+    this.services.calendar = new CalendarService(event);
     this.log.info('Started Calendar service...');
   }
 }

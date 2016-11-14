@@ -7,7 +7,11 @@ const isAdmin = require('../middlewares/isAdmin');
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.create.json} apiParam
  */
-function EventCreateAction({ params }) {
+function EventCreateAction({ params, auth }) {
+  // attach owner
+  params.owner = auth.credentials.user.id;
+
+  // create event
   return this.services.event.create(params);
 }
 

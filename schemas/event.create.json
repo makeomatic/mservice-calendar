@@ -1,18 +1,13 @@
 {
   "type": "object",
   "required": [
-    "owner",
     "title",
     "description",
     "rrule",
-    "duration"
+    "duration",
+    "token"
   ],
   "properties": {
-    "owner": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Event owner who has full access to event operations"
-    },
     "hosts": {
       "type": "array",
       "items": {
@@ -77,6 +72,9 @@
       "type": "integer",
       "minimum": 1,
       "description": "Event duration, in minutes"
+    },
+    "token": {
+      "$ref": "common.json#/definitions/token"
     }
   },
   "additionalProperties": false

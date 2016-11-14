@@ -43,7 +43,10 @@ class Event {
     );
 
     // do not cache RRule, we are not likely to work with same events
-    data.parsedRRule = new RRule(opts, { noCache: true });
+    // also do not make it enumerable, so that we don't need to omit it later
+    Object.defineProperty(data, 'parsedRRule', {
+      value: new RRule(opts, { noCache: true }),
+    });
 
     return data;
   }
@@ -54,12 +57,11 @@ class Event {
     // 2. table of expanded event time frames - it's a foreign key of id with cascade on delete
     // on update we manually recalculate all the data ranges, remove old ones & insert new ones
     return yield Promise
-      .resolve(data)
+      .bind(this.storage, data)
       .then(Event.parseRRule)
       .catch((e) => {
         throw new Errors.HttpStatusError(400, `Invalid RRule: ${e.message}`);
       })
-      .bind(this.storage)
       .then(this.storage.createEvent);
   }
 

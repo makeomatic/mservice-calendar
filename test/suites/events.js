@@ -1,71 +1,99 @@
-/* eslint-disable prefer-arrow-callback */
-
-const Promise = require('bluebird');
 const assert = require('assert');
 const moment = require('moment-timezone');
 const omit = require('lodash/omit');
 const assign = require('lodash/assign');
+const request = require('../helpers/request');
 const { debug } = require('../helpers/utils');
+const { login } = require('../helpers/users');
 
 describe('Events Suite', function EventsSuite() {
   const Calendar = require('../../src');
+  const calendar = new Calendar(global.SERVICES);
 
-  let service;
-  before('start service', () => {
-    service = this.service = new Calendar(global.SERVICES);
-    return service.connect();
-  });
+  before('start service', () => calendar.connect());
+  after('stop service', () => calendar.close());
 
-  before('wait service', () => Promise.delay(2000));
+  before('login admin', () => (
+    login(calendar.amqp, 'admin@foo.com', 'adminpassword00000')
+      .tap(({ jwt }) => (this.adminToken = jwt))
+  ));
+
+  before('login user', () => (
+    login(calendar.amqp, 'user@foo.com', 'userpassword000000')
+      .tap(({ jwt }) => (this.userToken = jwt))
+  ));
 
   const uri = {
-    create: 'calendar.event.create',
-    update: 'calendar.event.update',
-    remove: 'calendar.event.remove',
-    list: 'calendar.event.list',
-    single: 'calendar.event.single',
-    subscribe: 'calendar.event.subscribe',
-    build: 'calendar.build',
+    create: 'http://0.0.0.0:3000/api/calendar/event/create',
+    update: 'http://0.0.0.0:3000/api/calendar/event/update',
+    remove: 'http://0.0.0.0:3000/api/calendar/event/remove',
+    list: 'http://0.0.0.0:3000/api/calendar/event/list',
+    single: 'http://0.0.0.0:3000/api/calendar/event/single',
+    subscribe: 'http://0.0.0.0:3000/api/calendar/event/subscribe',
+    build: 'http://0.0.0.0:3000/api/calendar/build',
   };
 
   const event1 = {
-    owner: 'test@test.ru',
-    title: 'Test event 1',
+    title: 'Test event 1 - recurring',
     description: 'One time event',
     tags: ['music', 'news', 'jazz'],
+    hosts: ['dj maverick', 'dj simons'],
     rrule: 'FREQ=WEEKLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
+    duration: 30,
   };
 
   const event2 = {
-    owner: 'test@test.ru',
     title: 'Test event 2',
-    description: 'Recurring event',
-    recurring: true,
-    rrule: 'FREQ=WEEKLY;COUNT=30;WKST=MO;BYDAY=TU',
-    start_time: moment('2100-09-01 19:30').tz('Asia/Irkutsk').format(),
-    end_time: moment('2100-12-01').tz('Asia/Irkutsk').format(),
-    duration: 'PT1H',
+    description: 'One time event',
+    tags: ['music', 'news', 'jazz'],
+    hosts: ['dj maverick', 'dj simons'],
+    rrule: 'FREQ=WEEKLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO;COUNT=1',
+    duration: 60,
   };
 
-  describe('Create', function EventCreateSuite() {
-    it('Success one-time event', () => (
-      service
-      .amqp.publishAndWait(uri.create, event1)
-      .reflect()
-      .then((result) => {
-        assert(result.isFulfilled());
+  describe('Create', () => {
+    it.only('should not be able to create event without token', () => (
+      request(uri.create, event1).then((response) => {
+        const { body, statusCode } = response;
+
+        assert.equal(statusCode, 400);
+        assert.equal(body.statusCode, 400);
+        assert.equal(body.error, 'Bad Request');
+        assert.equal(body.message, 'event.create validation failed:' +
+          ' data should have required property \'token\'');
+        assert.equal(body.name, 'ValidationError');
+
         return null;
       })
     ));
 
-    it('Success recurring event', () => service
-      .amqp.publishAndWait(uri.create, event2)
-      .reflect()
-      .then((result) => {
-        assert(result.isFulfilled());
+    it.only('should not be able to create event with user token', () => (
+      request(uri.create, Object.assign({ token: this.userToken }, event1))
+      .then((response) => {
+        const { body, statusCode } = response;
+
+        assert.equal(statusCode, 403);
+        assert.equal(body.statusCode, 403);
+        assert.equal(body.error, 'Forbidden');
+        assert.equal(body.message, 'An attempt was made to perform an operation that is not permitted: '
+          + 'HttpStatusError: Access to this action is denied');
+        assert.equal(body.name, 'HttpStatusError');
+
         return null;
       })
-    );
+    ));
+
+    it.only('Create recurring event successfully', () => (
+      request(uri.creaate, Object.assign({ token: this.adminToken }, event1))
+      .then((response) => {
+        const { body, statusCode } = response;
+        assert.equal(statusCode, 200);
+
+        // TODO: verify response
+
+        return null;
+      })
+    ));
 
     it('Fail with missing rrule for recurring events', () => service
       .amqp.publishAndWait(uri.create, assign(omit(event2, 'rrule'), { id: 'event2_no_rrule' }))

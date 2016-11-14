@@ -1,5 +1,6 @@
-const EventModel = require('../models/events');
-const { forEach, isArray } = require('lodash');
+const { EVENT_TABLE, EVENT_SPAN_TABLE, EVENT_FIELDS } = require('../constants');
+const { forEach, isArray, pick } = require('lodash');
+const moment = require('moment');
 
 function createFilter(filter, query) {
   if (filter.limit) query.limit(filter.limit);
@@ -27,45 +28,52 @@ function createFilter(filter, query) {
 
 class Storage {
   constructor(knex) {
-    const client = this.client = knex;
-
-    /**
-     * Perform an "Upsert" using the "INSERT ... ON CONFLICT ... " syntax in PostgreSQL 9.5
-     * @link http://www.postgresql.org/docs/9.5/static/sql-insert.html
-     * @author https://github.com/plurch
-     *
-     * @param {string} tableName - The name of the database table
-     * @param {string} conflictTarget - The column in the table which has a unique index constraint
-     * @param {Object} itemData - a hash of properties to be inserted/updated into the row
-     * @returns {Promise} - A Promise which resolves to the inserted/updated row
-     */
-    client.upsertItem = function upsertItem(tableName, conflictTarget, itemData) {
-      const targets = conflictTarget.split(', ');
-      const exclusions = Object.keys(itemData)
-        .filter(c => targets.indexOf(c) === -1)
-        .map(c => client.raw('?? = EXCLUDED.??', [c, c]).toString())
-        .join(', ');
-
-      const insertString = client(tableName).insert(itemData).toString();
-      const conflictString = client
-        .raw(` ON CONFLICT (${conflictTarget}) DO UPDATE SET ${exclusions} RETURNING *;`)
-        .toString();
-      const query = (insertString + conflictString).replace(/\?/g, '\\?');
-
-      return client.raw(query).then(result => result.rows[0]);
-    };
+    this.client = knex;
   }
 
+  /**
+   * Inserts event data into the PGSQL database
+   * Expands
+   */
   createEvent(data) {
-    return this.client(EventModel.tableName).insert(data);
+    // won't be more than 365 events due to constraints we have
+    const rrule = data.parsedRRule;
+    const events = rrule.all();
+    const duration = data.duration;
+    const knex = this.client;
+    const resultingEvent = pick(data, EVENT_FIELDS);
+
+    return knex.transaction(trx => (
+      knex(EVENT_TABLE)
+      .transacting(trx)
+      .insert(resultingEvent)
+      .spread((id) => {
+        const spans = events.map(span => ({
+          event_id: id,
+          start_time: span.toISOString(),
+          end_time: moment(span).add(duration, 'minutes').toISOString(),
+        }));
+
+        // embed id into the resulting event
+        resultingEvent.id = id;
+
+        return knex(EVENT_SPAN_TABLE)
+          .transacting(trx)
+          .insert(spans)
+          .return(resultingEvent);
+      })
+      .tap(trx.commit)
+      .catch(trx.rollback)
+    ));
   }
 
   updateEvent(id, data) {
-    return this.client(EventModel.tableName).where({ id }).update(data);
+    // TODO: if rrule changed we need to regenerate spans
+    return this.client(EVENT_TABLE).where({ id }).update(data);
   }
 
   getEvent(id) {
-    return this.client(EventModel.tableName).where({ id }).then((results) => {
+    return this.client(EVENT_TABLE).where({ id }).then((results) => {
       if (results.length > 0) {
         return results[0];
       }
@@ -75,12 +83,12 @@ class Storage {
   }
 
   getEvents(filter) {
-    const query = this.client(EventModel.tableName);
+    const query = this.client(EVENT_TABLE);
     return createFilter(filter, query);
   }
 
   removeEvents(filter) {
-    const query = this.client(EventModel.tableName);
+    const query = this.client(EVENT_TABLE);
     return createFilter(filter, query).del();
   }
 
@@ -88,10 +96,10 @@ class Storage {
     let query;
     const subscriber = `{${data.subscriber}}`;
     if (!data.notify) {
-      const sql = `update ${EventModel.tableName} set subscribers = subscribers || ? where id = ?`;
+      const sql = `update ${EVENT_TABLE} set subscribers = subscribers || ? where id = ?`;
       query = this.client.raw(sql, [subscriber, data.event]);
     } else {
-      const sql = `update ${EventModel.tableName} set notifications = notifications || ?, subscribers = subscribers || ? where id = ?`;
+      const sql = `update ${EVENT_TABLE} set notifications = notifications || ?, subscribers = subscribers || ? where id = ?`;
       query = this.client.raw(sql, [subscriber, subscriber, data.event]);
     }
     return query;
