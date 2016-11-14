@@ -1,5 +1,6 @@
-const { EVENT_TABLE, EVENT_SPAN_TABLE, EVENT_FIELDS } = require('../constants');
+const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS, EVENT_TYPE } = require('../constants');
 const { forEach, isArray, pick } = require('lodash');
+const { transformModel } = require('../utils/transform');
 const moment = require('moment');
 
 function createFilter(filter, query) {
@@ -27,8 +28,9 @@ function createFilter(filter, query) {
 }
 
 class Storage {
-  constructor(knex) {
+  constructor(knex, logger) {
     this.client = knex;
+    this.log = logger;
   }
 
   /**
@@ -43,11 +45,16 @@ class Storage {
     const knex = this.client;
     const resultingEvent = pick(data, EVENT_FIELDS);
 
+    this.log.debug('creating event', data);
+
     return knex.transaction(trx => (
       knex(EVENT_TABLE)
       .transacting(trx)
+      .returning('id')
       .insert(resultingEvent)
       .spread((id) => {
+        this.log.debug('created event', id);
+
         const spans = events.map(span => ({
           event_id: id,
           start_time: span.toISOString(),
@@ -57,10 +64,10 @@ class Storage {
         // embed id into the resulting event
         resultingEvent.id = id;
 
-        return knex(EVENT_SPAN_TABLE)
+        return knex(EVENT_SPANS_TABLE)
           .transacting(trx)
           .insert(spans)
-          .return(resultingEvent);
+          .return(transformModel(resultingEvent, EVENT_TYPE));
       })
       .tap(trx.commit)
       .catch(trx.rollback)

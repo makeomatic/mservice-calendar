@@ -31,7 +31,7 @@ class Calendar extends MService {
   }
 
   initServices() {
-    const storage = this.services.storage = new StorageService(this.knex);
+    const storage = this.services.storage = new StorageService(this.knex, this.log);
     const event = this.services.event = new EventService(storage);
 
     this.services.calendar = new CalendarService(event);

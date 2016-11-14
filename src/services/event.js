@@ -18,6 +18,7 @@ class Event {
   constructor(storage) {
     coroutine(this);
     this.storage = storage;
+    this.log = storage.log;
   }
 
   static parseRRule(data) {
@@ -52,6 +53,8 @@ class Event {
   }
 
   * create(data) {
+    this.log.info('creating data', data);
+
     // we have 2 tables:
     // 1. table of events - consists raw data with rrule
     // 2. table of expanded event time frames - it's a foreign key of id with cascade on delete

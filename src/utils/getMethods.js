@@ -1,5 +1,15 @@
 const { coroutine } = require('bluebird');
-const is = require('is');
+
+function isGenerator(obj) {
+  return typeof obj.next === 'function' && typeof obj.throw === 'function';
+}
+
+function isGeneratorFunction(obj) {
+  const constructor = obj.constructor;
+  if (!constructor) return false;
+  if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') return true;
+  return isGenerator(constructor.prototype);
+}
 
 function getAllMethodNames(_obj) {
   const methods = new Set();
@@ -16,6 +26,8 @@ module.exports = getAllMethodNames;
 module.exports.coroutine = function applyCoroutine(obj) {
   getAllMethodNames(obj).forEach((method) => {
     const fn = obj[method];
-    if (is.fn(fn)) obj[method] = coroutine(fn);
+    if (isGeneratorFunction(fn)) {
+      obj[method] = coroutine(fn);
+    }
   });
 };

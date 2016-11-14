@@ -21,7 +21,7 @@ if ! [ -x "$(which docker-compose)" ]; then
 fi
 
 # add trap handler
-trap "$COMPOSE stop; $COMPOSE rm -f -v;" EXIT
+# trap "$COMPOSE stop; $COMPOSE rm -f -v;" EXIT
 $COMPOSE up -d
 
 # rebuild if needed
