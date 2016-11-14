@@ -55,11 +55,17 @@ class Storage {
       .spread((id) => {
         this.log.debug('created event', id);
 
-        const spans = events.map(span => ({
-          event_id: id,
-          start_time: span.toISOString(),
-          end_time: moment(span).add(duration, 'minutes').toISOString(),
-        }));
+        const spans = events.map((span) => {
+          const startTime = span.toISOString();
+          const endTime = moment(span).add(duration, 'minutes').toISOString();
+
+          return {
+            event_id: id,
+            start_time: startTime,
+            end_time: endTime,
+            period: `[${startTime},${endTime})`,
+          };
+        });
 
         // embed id into the resulting event
         resultingEvent.id = id;
@@ -89,9 +95,43 @@ class Storage {
     });
   }
 
-  getEvents(filter) {
-    const query = this.client(EVENT_TABLE);
-    return createFilter(filter, query);
+  getEvents({ owner, tags, hosts, startTime, endTime }) {
+    const knex = this.client;
+
+    this.log.debug('querying %s between %s and %s', owner, startTime, endTime);
+
+    const query = knex
+      .select([
+        'id',
+        'title',
+        'description',
+        'rrule',
+        'duration',
+        'tags',
+        'hosts',
+        knex.raw(`array_to_json(array_agg("${EVENT_SPANS_TABLE}"."start_time")) as start_time`),
+      ])
+      .from(EVENT_TABLE)
+      .joinRaw(`LEFT JOIN ${EVENT_SPANS_TABLE} on (`
+        + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
+        + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
+        + ')'
+      )
+      .where(`${EVENT_TABLE}.owner`, owner)
+      .groupByRaw(`${EVENT_TABLE}.id`)
+      .orderBy(knex.raw(`MIN("${EVENT_SPANS_TABLE}"."start_time")`), 'asc')
+      .orderBy('id', 'asc');
+
+    // add this to query
+    if (tags) {
+      query.where(`${EVENT_TABLE}.tags`, '&&', tags);
+    }
+
+    if (hosts) {
+      query.where(`${EVENT_TABLE}.hosts`, '&&', hosts);
+    }
+
+    return query;
   }
 
   removeEvents(filter) {

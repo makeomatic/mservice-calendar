@@ -1,4 +1,5 @@
 const assert = require('assert');
+const moment = require('moment');
 const request = require('../helpers/request');
 const { login } = require('../helpers/users');
 
@@ -88,6 +89,23 @@ describe('Events Suite', function EventsSuite() {
   });
 
   describe('List events', () => {
+    it('should return a sample list of events', () => (
+      request(uri.list, {
+        owner: 'admin@foo.com',
+        tags: ['music', 'news'],
+        hosts: ['dj simons', 'borkman'],
+        startTime: moment().subtract(1, 'months').toISOString(),
+        endTime: moment().add(1, 'months').toISOString(),
+      })
+      .then((response) => {
+        const { body, statusCode } = response;
 
+        assert.equal(statusCode, 200);
+
+        console.log(body);
+
+        return null;
+      })
+    ));
   });
 });
