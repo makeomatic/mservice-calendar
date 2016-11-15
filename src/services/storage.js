@@ -101,8 +101,8 @@ class Storage {
     ));
   }
 
-  getEvent(id) {
-    return this.client(EVENT_TABLE).where({ id }).then((results) => {
+  getEvent(id, owner) {
+    return this.client(EVENT_TABLE).where({ id, owner }).then((results) => {
       if (results.length > 0) {
         return results[0];
       }
@@ -151,7 +151,7 @@ class Storage {
   }
 
   // EVENT_SPANS_TABLE will be deleted using foreign key CASCADE on DELETE
-  removeEvents({ id, owner }) {
+  removeEvent({ id, owner }) {
     const knex = this.client;
     return knex(EVENT_TABLE).where({ id, owner }).del();
   }

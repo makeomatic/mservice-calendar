@@ -217,4 +217,34 @@ describe('Events Suite', function EventsSuite() {
       })
     ));
   });
+
+  // removes event completely
+  describe('remove event', () => {
+    it('allows owner to remove event', () => (
+      request(uri.remove, { id: 1, token: this.adminToken })
+      .then((response) => {
+        const { statusCode } = response;
+        assert.equal(statusCode, 200);
+        return null;
+      })
+    ));
+
+    it('should return a sample list of updated events', () => (
+      request(uri.list, {
+        owner: 'admin@foo.com',
+        startTime: moment().subtract(1, 'year').toISOString(),
+        endTime: moment().add(1, 'year').toISOString(),
+      })
+      .then((response) => {
+        const { body, statusCode } = response;
+
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.count, 0);
+        assert.equal(body.data.length, 0);
+
+        return null;
+      })
+    ));
+  });
 });

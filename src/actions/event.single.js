@@ -1,5 +1,6 @@
 const { TYPE_EVENT, modelResponse } = require('../utils/response');
 const partial = require('lodash/partial');
+const isAdmin = require('../middlewares/isAdmin');
 
 // cached response
 const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
@@ -11,16 +12,17 @@ const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.single.json} apiParam
  */
-function EventSubscribeAction({ params }) {
-  // TODO: filter out subscribers & notifications?
+function EventGet({ params, auth }) {
   return this
     .services
     .event
-    .get(params.id)
+    .get(params.id, auth.credentials.user.id)
     .then(response);
 }
 
-EventSubscribeAction.schema = 'event.single';
-EventSubscribeAction.transports = ['http', 'amqp'];
+EventGet.auth = 'token';
+EventGet.allowed = isAdmin;
+EventGet.schema = 'event.single';
+EventGet.transports = ['http', 'amqp'];
 
-module.exports = EventSubscribeAction;
+module.exports = EventGet;
