@@ -72,10 +72,12 @@ class Event {
     this.log.info('updating event', event);
 
     // simple case of just updating metadata for an event
+    // in that case duration is not specified either
     if (is.undefined(event.rrule)) {
       return yield this.storage.updateEventMeta(id, owner, event);
     }
 
+    // validation rules require the duration to be specified
     // a more complex case where we need to recalculate all
     // time-spans, this includes removing earlier time-spans
     // and building new ones as rrule has changed

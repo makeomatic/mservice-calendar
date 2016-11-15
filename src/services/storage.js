@@ -73,32 +73,28 @@ class Storage {
     return query
       .where({ id, owner })
       .update(data)
-      .returning(['id', 'duration'])
       .then((results) => {
         if (results.length === 0) {
           throw new Errors.HttpStatusError(404, `event ${id} not found for owner ${owner}`);
         }
 
         // all OK
-        // return { id, duration }
-        return results[0];
+        return null;
       });
   }
 
   updateEvent(id, owner, data) {
     const knex = this.client;
+    const spans = Storage.generateSpans(data.parsedRRule, data.duration, id);
+
     return knex.transaction(trx => (
-      this
-        .updateEvent(id, owner, data, trx)
-        .then(({ duration }) => {
-          const spans = Storage.Storage(data.parsedRRule, duration, id);
-          return Promise.join(
-            knex(EVENT_SPANS_TABLE).transacting(trx).where('event_id', id).del(),
-            knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans)
-          );
-        })
-        .tap(trx.commit)
-        .catch(trx.rollback)
+      Promise.join(
+        this.updateEventMeta(id, owner, data, trx),
+        knex(EVENT_SPANS_TABLE).transacting(trx).where('event_id', id).del(),
+        knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans)
+      )
+      .tap(trx.commit)
+      .catch(trx.rollback)
     ));
   }
 

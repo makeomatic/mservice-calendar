@@ -10,8 +10,11 @@
       "type": "integer"
     },
     "token": {
+      "$ref": "common.json#/definitions/token"
+    },
+    "event": {
       "allOf": [{
-        "$ref": "common.json#/definitions/token"
+        "$ref": "common.json#/definitions/event"
       }, {
         "type": "object",
         "minProperties": 1,
@@ -23,10 +26,42 @@
           ]
         }
       }]
-    },
-    "event": {
-      "$ref": "common.json#/definitions/event"
     }
   },
+  "switch": [{
+    "if": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["rrule"]
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["duration"]
+        }
+      }
+    }
+  }, {
+    "if": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["duration"]
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["rrule"]
+        }
+      }
+    }
+  }],
   "additionalProperties": false
 }
