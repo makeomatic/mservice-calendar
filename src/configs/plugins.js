@@ -3,8 +3,8 @@ module.exports = {
     'validator', // keep it first
     'logger',    // keep it second
     'router',
-    'amqp',
     'http',
+    'amqp',
     'knex',
   ],
 };

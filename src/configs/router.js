@@ -2,14 +2,15 @@ const { ActionTransport, routerExtension } = require('mservice');
 const auth = require('../auth/token');
 const path = require('path');
 
-const { amqp, http } = ActionTransport;
-
 module.exports = {
   router: {
     routes: {
-      directory: path.resolve(__dirname, './../actions'),
+      directory: path.resolve(__dirname, '../actions'),
       prefix: 'calendar',
-      transports: [amqp, http],
+      transports: [
+        ActionTransport.http,
+        ActionTransport.amqp,
+      ],
     },
     extensions: {
       enabled: ['postValidate', 'postRequest', 'preRequest', 'preResponse'],

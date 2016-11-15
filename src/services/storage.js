@@ -1,33 +1,8 @@
 const Promise = require('bluebird');
-const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS, EVENT_TYPE } = require('../constants');
-const { forEach, isArray, pick } = require('lodash');
-const { transformModel } = require('../utils/transform');
+const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS } = require('../constants');
+const { pick } = require('lodash');
 const moment = require('moment');
 const Errors = require('common-errors');
-
-function createFilter(filter, query) {
-  if (filter.limit) query.limit(filter.limit);
-
-  if (filter.start) query.offset(filter.start);
-
-  if (filter.order) {
-    forEach(filter.order, (direction, field) => {
-      query.orderBy(field, direction);
-    });
-  }
-
-  if (filter.where) {
-    forEach(filter.where, (operation, field) => {
-      if (isArray(operation)) {
-        query.where(field, operation[0], operation[1]);
-      } else {
-        query.where(field, operation);
-      }
-    });
-  }
-
-  return query;
-}
 
 class Storage {
   constructor(knex, logger) {
@@ -73,12 +48,12 @@ class Storage {
         resultingEvent.id = id;
 
         // generate spans
-        const spans = Storage.Storage(data.parsedRRule, data.duration, id);
+        const spans = Storage.generateSpans(data.parsedRRule, data.duration, id);
 
         return knex(EVENT_SPANS_TABLE)
           .transacting(trx)
           .insert(spans)
-          .return(transformModel(resultingEvent, EVENT_TYPE));
+          .return(resultingEvent);
       })
       .tap(trx.commit)
       .catch(trx.rollback)
@@ -176,9 +151,10 @@ class Storage {
     return query;
   }
 
-  removeEvents(filter) {
-    const query = this.client(EVENT_TABLE);
-    return createFilter(filter, query).del();
+  // EVENT_SPANS_TABLE will be deleted using foreign key CASCADE on DELETE
+  removeEvents({ id, owner }) {
+    const knex = this.client;
+    return knex(EVENT_TABLE).where({ id, owner }).del();
   }
 
   subscribeToEvent(data) {

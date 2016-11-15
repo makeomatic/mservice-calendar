@@ -1,8 +1,7 @@
 const omit = require('lodash/omit');
+const is = require('is');
 
-const isfn = fn => typeof fn === 'function';
 const TYPE_EVENT = 'event';
-const TYPE_CALENDAR = 'calendar';
 
 function transform(object, type) {
   const response = {
@@ -26,7 +25,7 @@ function collectionResponse(objects, type, options = {}) {
   };
 
   if (count) {
-    response.meta.cursor = isfn(cursor)
+    response.meta.cursor = is.fn(cursor)
       ? cursor(objects)
       : objects[count - 1][cursor];
   }
@@ -56,5 +55,4 @@ module.exports = {
   successResponse,
   transform,
   TYPE_EVENT,
-  TYPE_CALENDAR,
 };

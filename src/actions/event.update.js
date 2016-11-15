@@ -1,4 +1,5 @@
 const isAdmin = require('../middlewares/isAdmin');
+const { successResponse } = require('../utils/response');
 
 /**
  * @api {http} <prefix>.event.create Update old event
@@ -14,12 +15,16 @@ function EventUpdateAction({ params, auth }) {
   const id = params.id;
 
   // update the event
-  return this.services.event.update(id, owner, event);
+  return this
+    .services
+    .event
+    .update(id, owner, event)
+    .then(successResponse);
 }
 
 EventUpdateAction.auth = 'token';
 EventUpdateAction.allowed = isAdmin;
 EventUpdateAction.schema = 'event.update';
-EventUpdateAction.transports = ['http'];
+EventUpdateAction.transports = ['http', 'amqp'];
 
 module.exports = EventUpdateAction;

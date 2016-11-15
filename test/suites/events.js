@@ -37,8 +37,6 @@ describe('Events Suite', function EventsSuite() {
     hosts: ['dj maverick', 'dj simons'],
     rrule: 'FREQ=WEEKLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
     duration: 30,
-    notifications: [],
-    subscribers: [],
   };
 
   describe('Create', () => {
@@ -46,11 +44,10 @@ describe('Events Suite', function EventsSuite() {
       request(uri.create, { event: event1 }).then((response) => {
         const { body, statusCode } = response;
 
+        assert.ok(/data should have required property 'token'/.test(body.message));
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.message, 'event.create validation failed:' +
-          ' data should have required property \'token\'');
         assert.equal(body.name, 'ValidationError');
 
         return null;
@@ -62,11 +59,11 @@ describe('Events Suite', function EventsSuite() {
       .then((response) => {
         const { body, statusCode } = response;
 
+        assert.equal(body.message, 'An attempt was made to perform an operation that is not permitted: '
+          + 'HttpStatusError: Access to this action is denied');
         assert.equal(statusCode, 403);
         assert.equal(body.statusCode, 403);
         assert.equal(body.error, 'Forbidden');
-        assert.equal(body.message, 'An attempt was made to perform an operation that is not permitted: '
-          + 'HttpStatusError: Access to this action is denied');
         assert.equal(body.name, 'NotPermittedError');
 
         return null;

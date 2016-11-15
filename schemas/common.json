@@ -6,70 +6,69 @@
       "description": "Auth token"
     },
     "event": {
-      "hosts": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "minLength": 1
+      "type": "object",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Event hosts, e.g. DJs"
         },
-        "default": [],
-        "description": "Event hosts, e.g. DJs"
-      },
-      "subscribers": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "minLength": 1
+        "subscribers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Event attendants"
         },
-        "default": [],
-        "description": "Event attendants"
-      },
-      "notifications": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "minLength": 1
+        "notifications": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Subscribers to be notified about event changes or time"
         },
-        "default": [],
-        "description": "Subscribers to be notified about event changes or time"
-      },
-      "title": {
-        "type": "string",
-        "minLength": 3,
-        "description": "Event name"
-      },
-      "description": {
-        "type": "string",
-        "minLength": 3,
-        "description": "Event description"
-      },
-      "picture": {
-        "type": "string",
-        "description": "Event image",
-        "format": "uri"
-      },
-      "link": {
-        "type": "string",
-        "description": "Additional link",
-        "format": "uri"
-      },
-      "tags": {
-        "type": "array",
-        "items": {
+        "title": {
           "type": "string",
-          "minLength": 1
+          "minLength": 3,
+          "description": "Event name"
         },
-        "default": [],
-        "description": "Tags to search events"
-      },
-      "rrule": {
-        "type": "string",
-        "description": "RRule to describe event recurrence. See https://github.com/jkbrzt/rrule"
-      },
-      "duration": {
-        "type": "integer",
-        "minimum": 1,
-        "description": "Event duration, in minutes"
+        "description": {
+          "type": "string",
+          "minLength": 3,
+          "description": "Event description"
+        },
+        "picture": {
+          "type": "string",
+          "description": "Event image",
+          "format": "uri"
+        },
+        "link": {
+          "type": "string",
+          "description": "Additional link",
+          "format": "uri"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Tags to search events"
+        },
+        "rrule": {
+          "type": "string",
+          "description": "RRule to describe event recurrence. See https://github.com/jkbrzt/rrule"
+        },
+        "duration": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Event duration, in minutes"
+        }
       }
     }
   }

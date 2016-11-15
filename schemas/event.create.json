@@ -1,15 +1,27 @@
 {
   "type": "object",
   "required": [
-    "title",
-    "description",
-    "rrule",
-    "duration",
+    "event",
     "token"
   ],
   "properties": {
     "event": {
-      "$ref": "common.json#/definitions/event"
+      "allOf": [{
+        "$ref": "common.json#/definitions/event"
+      }, {
+        "required": [
+          "title",
+          "description",
+          "rrule",
+          "duration"
+        ],
+        "not": {
+          "required": [
+            "subscribers",
+            "notifications"
+          ]
+        }
+      }]
     },
     "token": {
       "$ref": "common.json#/definitions/token"

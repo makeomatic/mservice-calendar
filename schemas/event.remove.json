@@ -1,21 +1,16 @@
 {
   "type": "object",
   "required": [
-    "auth"
+    "id",
+    "token"
   ],
   "properties": {
     "id": {
       "type": "integer",
       "description": "Event ID"
     },
-    "auth": {
-      "type": "string",
-      "minLength": 1,
-      "description": "User performing operation. Only owner will be allowed to delete event."
-    },
-    "where": {
-      "type": "object",
-      "description": "Delete by query clause"
+    "token": {
+      "$ref": "common.json#/definitions/token"
     }
   },
   "additionalProperties": false

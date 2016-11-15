@@ -1,3 +1,4 @@
+const { successResponse } = require('../utils/response');
 const isAdmin = require('../middlewares/isAdmin');
 
 /**
@@ -7,13 +8,18 @@ const isAdmin = require('../middlewares/isAdmin');
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.remove.json} apiParam
  */
-function EventRegisterAction({ params }) {
-  return this.services.event.remove(params);
+function EventRegisterAction({ params, auth }) {
+  params.owner = auth.credentials.user.id;
+  return this
+    .services
+    .event
+    .remove(params)
+    .then(successResponse);
 }
 
 EventRegisterAction.auth = 'token';
 EventRegisterAction.allowed = isAdmin;
 EventRegisterAction.schema = 'event.remove';
-EventRegisterAction.transports = ['http'];
+EventRegisterAction.transports = ['http', 'amqp'];
 
 module.exports = EventRegisterAction;

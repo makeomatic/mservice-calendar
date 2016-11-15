@@ -5,7 +5,6 @@ const path = require('path');
 
 const StorageService = require('./services/storage');
 const EventService = require('./services/event');
-const CalendarService = require('./services/calendar');
 const UserService = require('./services/user');
 
 const defaultConfig = globFiles(path.resolve(__dirname, 'configs'));
@@ -31,10 +30,9 @@ class Calendar extends MService {
   }
 
   initServices() {
-    const storage = this.services.storage = new StorageService(this.knex, this.log);
-    const event = this.services.event = new EventService(storage);
+    this.services.storage = new StorageService(this.knex, this.log);
+    this.services.event = new EventService(this.services.storage);
 
-    this.services.calendar = new CalendarService(event);
     this.log.info('Started Calendar service...');
   }
 }
