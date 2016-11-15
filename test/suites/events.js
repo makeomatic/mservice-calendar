@@ -40,7 +40,10 @@ describe('Events Suite', function EventsSuite() {
   };
 
   const update = {
-    rrule: 'FREQ=MONTHLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
+    // In-case of MONTHLY we MUST specify day of which week we want to use. Every 3rd monday
+    // otherwise monthly would only mean this day
+    // We can also remove BYDAY and it will be months starting from DTSTART and + month
+    rrule: 'FREQ=MONTHLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=3MO',
     duration: 60,
   };
 
@@ -136,7 +139,7 @@ describe('Events Suite', function EventsSuite() {
       .then((response) => {
         const { body, statusCode } = response;
 
-        assert.ok(/data should have required property 'duration'/.test(body.message));
+        assert.ok(/data\.event should have required property 'duration'/.test(body.message));
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
@@ -146,20 +149,72 @@ describe('Events Suite', function EventsSuite() {
       })
     ));
 
-    it('should fail to update event when we duration, but not rrule', () => {
+    it('should fail to update event when we duration, but not rrule', () => (
+      request(uri.update, { id: 1, token: this.adminToken, event: { duration: 60 } })
+      .then((response) => {
+        const { body, statusCode } = response;
 
+        assert.ok(/data\.event should have required property 'rrule'/.test(body.message));
+        assert.equal(statusCode, 400);
+        assert.equal(body.statusCode, 400);
+        assert.equal(body.error, 'Bad Request');
+        assert.equal(body.name, 'ValidationError');
+
+        return null;
+      })
+    ));
+
+    it.skip('should fail to update when owner does not match', () => {
+      // TODO: login another admin and try to update event before
     });
 
-    it('should fail to update when owner does not match', () => {
+    it('should update only meta information when no rrule or duration present', () => (
+      request(uri.update, { id: 1, token: this.adminToken, event: { title: 'nom-nom' } })
+      .then((response) => {
+        const { statusCode } = response;
+        assert.equal(statusCode, 200);
+        return null;
+      })
+    ));
 
-    });
+    it('should update event periods when rrule & duration is present', () => (
+      request(uri.update, { id: 1, token: this.adminToken, event: update })
+      .then((response) => {
+        const { statusCode } = response;
+        assert.equal(statusCode, 200);
+        return null;
+      })
+    ));
 
-    it('should update only meta information when no rrule or duration present', () => {
+    it('should return a sample list of updated events', () => (
+      request(uri.list, {
+        owner: 'admin@foo.com',
+        tags: ['music', 'news'],
+        hosts: ['dj simons', 'borkman'],
+        startTime: moment().subtract(1, 'months').toISOString(),
+        endTime: moment().add(1, 'months').toISOString(),
+      })
+      .then((response) => {
+        const { body, statusCode } = response;
 
-    });
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.cursor, 1);
+        assert.equal(body.meta.count, 1);
+        assert.equal(body.data.length, 1);
+        assert.equal(body.data[0].id, 1);
+        assert.equal(body.data[0].type, 'event');
+        assert.ok(body.data[0].attributes);
 
-    it('should update event periods when rrule & duration is present', () => {
+        assert.deepEqual(body.data[0].attributes, Object.assign({
+          start_time: [
+            '2016-10-17T21:00:00+00:00',
+            '2016-11-21T21:00:00+00:00',
+          ],
+        }, event1, update, { title: 'nom-nom' }));
 
-    });
+        return null;
+      })
+    ));
   });
 });

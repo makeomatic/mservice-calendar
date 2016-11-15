@@ -69,11 +69,10 @@ class Event {
   }
 
   * update(id, owner, event) {
-    this.log.info('updating event', event);
-
     // simple case of just updating metadata for an event
     // in that case duration is not specified either
     if (is.undefined(event.rrule)) {
+      this.log.info('updating event meta', event);
       return yield this.storage.updateEventMeta(id, owner, event);
     }
 
@@ -81,6 +80,7 @@ class Event {
     // a more complex case where we need to recalculate all
     // time-spans, this includes removing earlier time-spans
     // and building new ones as rrule has changed
+    this.log.info('updating complete event', event);
     return yield Promise
       .bind(this.storage, event)
       .then(Event.parseRRule)

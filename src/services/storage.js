@@ -49,6 +49,7 @@ class Storage {
 
         // generate spans
         const spans = Storage.generateSpans(data.parsedRRule, data.duration, id);
+        this.log.debug('generated spans %d', spans.length);
 
         return knex(EVENT_SPANS_TABLE)
           .transacting(trx)
@@ -56,7 +57,7 @@ class Storage {
           .return(resultingEvent);
       })
       .tap(trx.commit)
-      .catch(trx.rollback)
+      .catch(e => trx.rollback().throw(e))
     ));
   }
 
@@ -87,6 +88,8 @@ class Storage {
     const knex = this.client;
     const spans = Storage.generateSpans(data.parsedRRule, data.duration, id);
 
+    this.log.debug('generated spans %d', spans.length);
+
     return knex.transaction(trx => (
       Promise.join(
         this.updateEventMeta(id, owner, data, trx),
@@ -94,7 +97,7 @@ class Storage {
         knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans)
       )
       .tap(trx.commit)
-      .catch(trx.rollback)
+      .catch(e => trx.rollback().throw(e))
     ));
   }
 
