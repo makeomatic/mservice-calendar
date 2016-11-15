@@ -1,4 +1,4 @@
-FROM makeomatic/node:7.1.0
+FROM makeomatic/node:$NODE_VERSION
 
 WORKDIR /src
 
