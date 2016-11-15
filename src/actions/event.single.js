@@ -1,4 +1,9 @@
-const { coroutine } = require('bluebird');
+const { TYPE_EVENT, modelResponse } = require('../utils/response');
+const partial = require('lodash/partial');
+const isAdmin = require('../middlewares/isAdmin');
+
+// cached response
+const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
 
 /**
  * @api {http} <prefix>.event.single Get event by id.
@@ -7,13 +12,17 @@ const { coroutine } = require('bluebird');
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.single.json} apiParam
  */
-function EventSubscribeAction({ params }) {
-  const { event } = this.services;
-  const method = event.single.bind(event);
-  return coroutine(method)(params);
+function EventGet({ params, auth }) {
+  return this
+    .services
+    .event
+    .get(params.id, auth.credentials.user.id)
+    .then(response);
 }
 
-EventSubscribeAction.schema = 'event.single';
-EventSubscribeAction.transports = ['amqp'];
+EventGet.auth = 'token';
+EventGet.allowed = isAdmin;
+EventGet.schema = 'event.single';
+EventGet.transports = ['http', 'amqp'];
 
-module.exports = EventSubscribeAction;
+module.exports = EventGet;

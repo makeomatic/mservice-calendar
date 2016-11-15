@@ -2,91 +2,66 @@
   "type": "object",
   "required": [
     "id",
-    "auth",
+    "token",
     "event"
   ],
   "properties": {
     "id": {
       "type": "integer"
     },
-    "auth": {
-      "type": "string",
-      "minLength": 1
+    "token": {
+      "$ref": "common.json#/definitions/token"
     },
     "event": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "type": "string",
-          "minLength": 1
-        },
-        "hosts": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "subscribers": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "notifications": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "title": {
-          "type": "string",
-          "minLength": 3
-        },
-        "description": {
-          "type": "string",
-          "minLength": 3
-        },
-        "picture": {
-          "type": "string",
-          "minLength": 3
-        },
-        "link": {
-          "type": "string",
-          "minLength": 3
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 3
-          }
-        },
-        "rrule": {
-          "type": "string",
-          "minLength": 3
-        },
-        "recurring": {
-          "type": "boolean",
-          "default": false
-        },
-        "start_time": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "end_time": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "duration": {
-          "type": "string",
-          "minLength": 1
+      "allOf": [{
+        "$ref": "common.json#/definitions/event"
+      }, {
+        "type": "object",
+        "minProperties": 1,
+        "not": {
+          "required": [
+            "owner",
+            "notifications",
+            "subscribers"
+          ]
         }
-      },
-      "additionalProperties": false
+      }]
     }
   },
+  "switch": [{
+    "if": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["rrule"]
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["duration"]
+        }
+      }
+    }
+  }, {
+    "if": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["duration"]
+        }
+      }
+    },
+    "then": {
+      "properties": {
+        "event": {
+          "type": "object",
+          "required": ["rrule"]
+        }
+      }
+    }
+  }],
   "additionalProperties": false
 }

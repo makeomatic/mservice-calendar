@@ -1,4 +1,8 @@
-const { coroutine } = require('bluebird');
+const { TYPE_EVENT, collectionResponse } = require('../utils/response');
+const partial = require('lodash/partial');
+
+// cached response
+const response = partial(collectionResponse, partial.placeholder, TYPE_EVENT);
 
 /**
  * @api {http} <prefix>.event.list List events registered in the system
@@ -8,12 +12,14 @@ const { coroutine } = require('bluebird');
  * @apiSchema {jsonschema=../../schemas/event.list.json} apiParam
  */
 function EventListAction({ params }) {
-  const { event } = this.services;
-  const method = event.list.bind(event);
-  return coroutine(method)(params);
+  return this
+    .services
+    .event
+    .list(params)
+    .then(response);
 }
 
 EventListAction.schema = 'event.list';
-EventListAction.transports = ['amqp'];
+EventListAction.transports = ['http', 'amqp'];
 
 module.exports = EventListAction;

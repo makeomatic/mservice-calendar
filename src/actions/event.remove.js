@@ -1,4 +1,5 @@
-const { coroutine } = require('bluebird');
+const { successResponse } = require('../utils/response');
+const isAdmin = require('../middlewares/isAdmin');
 
 /**
  * @api {http} <prefix>.event.remove Remove event
@@ -7,13 +8,18 @@ const { coroutine } = require('bluebird');
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.remove.json} apiParam
  */
-function EventRegisterAction({ params }) {
-  const { event } = this.services;
-  const method = event.remove.bind(event);
-  return coroutine(method)(params);
+function EventRegisterAction({ params, auth }) {
+  params.owner = auth.credentials.user.id;
+  return this
+    .services
+    .event
+    .remove(params)
+    .then(successResponse);
 }
 
+EventRegisterAction.auth = 'token';
+EventRegisterAction.allowed = isAdmin;
 EventRegisterAction.schema = 'event.remove';
-EventRegisterAction.transports = ['amqp'];
+EventRegisterAction.transports = ['http', 'amqp'];
 
 module.exports = EventRegisterAction;

@@ -1,12 +1,16 @@
 {
   "type": "object",
   "required": [
-    "id"
+    "id",
+    "token"
   ],
   "properties": {
     "id": {
       "type": "integer",
       "description": "Unique ID of event"
+    },
+    "token": {
+      "$ref": "common.json#/definitions/token"
     }
   },
   "additionalProperties": false

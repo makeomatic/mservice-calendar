@@ -8,14 +8,4 @@ global.SERVICES = {
       },
     },
   },
-  storage: {
-    debug: false,
-    client: 'pg',
-    connection: {
-      host: 'pg',
-      user: 'postgres',
-      password: '',
-    },
-    delay: 1000,
-  },
 };

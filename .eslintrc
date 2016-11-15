@@ -1,5 +1,6 @@
 {
   "extends": "airbnb-base",
+  "parser": "babel-eslint",
   "plugins": [
       "promise"
   ],
@@ -12,6 +13,13 @@
     "no-underscore-dangle": 0,
     "prefer-arrow-callback": 0,
     "no-param-reassign": [2,{"props": false}],
-    "max-len": [2, 150]
+    "max-len": [2, 150],
+    "comma-dangle": ["error", {
+      "arrays": "always-multiline",
+      "objects": "always-multiline",
+      "imports": "never",
+      "exports": "never",
+      "functions": "never",
+    }]
   }
 }

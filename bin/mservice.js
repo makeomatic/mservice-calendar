@@ -7,7 +7,8 @@ const Calendar = require('../src');
 
 const calendar = new Calendar(configuration.get('/'));
 
-calendar.connect()
+calendar
+  .connect()
   .catch((err) => {
     calendar.log.fatal('Failed to start service', err);
     setImmediate(() => {
