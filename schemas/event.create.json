@@ -8,70 +8,8 @@
     "token"
   ],
   "properties": {
-    "hosts": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "default": [],
-      "description": "Event hosts, e.g. DJs"
-    },
-    "subscribers": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "default": [],
-      "description": "Event attendants"
-    },
-    "notifications": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "default": [],
-      "description": "Subscribers to be notified about event changes or time"
-    },
-    "title": {
-      "type": "string",
-      "minLength": 3,
-      "description": "Event name"
-    },
-    "description": {
-      "type": "string",
-      "minLength": 3,
-      "description": "Event description"
-    },
-    "picture": {
-      "type": "string",
-      "description": "Event image",
-      "format": "uri"
-    },
-    "link": {
-      "type": "string",
-      "description": "Additional link",
-      "format": "uri"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "default": [],
-      "description": "Tags to search events"
-    },
-    "rrule": {
-      "type": "string",
-      "description": "RRule to describe event recurrence. See https://github.com/jkbrzt/rrule"
-    },
-    "duration": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "Event duration, in minutes"
+    "event": {
+      "$ref": "common.json#/definitions/event"
     },
     "token": {
       "$ref": "common.json#/definitions/token"

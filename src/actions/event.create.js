@@ -9,10 +9,11 @@ const isAdmin = require('../middlewares/isAdmin');
  */
 function EventCreateAction({ params, auth }) {
   // attach owner
-  params.owner = auth.credentials.user.id;
+  const event = params.event;
+  event.owner = auth.credentials.user.id;
 
   // create event
-  return this.services.event.create(params);
+  return this.services.event.create(event);
 }
 
 EventCreateAction.allowed = isAdmin;

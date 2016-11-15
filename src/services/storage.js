@@ -1,7 +1,9 @@
+const Promise = require('bluebird');
 const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS, EVENT_TYPE } = require('../constants');
 const { forEach, isArray, pick } = require('lodash');
 const { transformModel } = require('../utils/transform');
 const moment = require('moment');
+const Errors = require('common-errors');
 
 function createFilter(filter, query) {
   if (filter.limit) query.limit(filter.limit);
@@ -33,15 +35,27 @@ class Storage {
     this.log = logger;
   }
 
+  static generateSpans(rrule, duration, id) {
+    const events = rrule.all();
+    return events.map((span) => {
+      const startTime = span.toISOString();
+      const endTime = moment(span).add(duration, 'minutes').toISOString();
+
+      return {
+        event_id: id,
+        start_time: startTime,
+        end_time: endTime,
+        period: `[${startTime},${endTime})`,
+      };
+    });
+  }
+
   /**
    * Inserts event data into the PGSQL database
    * Expands
    */
   createEvent(data) {
     // won't be more than 365 events due to constraints we have
-    const rrule = data.parsedRRule;
-    const events = rrule.all();
-    const duration = data.duration;
     const knex = this.client;
     const resultingEvent = pick(data, EVENT_FIELDS);
 
@@ -55,20 +69,11 @@ class Storage {
       .spread((id) => {
         this.log.debug('created event', id);
 
-        const spans = events.map((span) => {
-          const startTime = span.toISOString();
-          const endTime = moment(span).add(duration, 'minutes').toISOString();
-
-          return {
-            event_id: id,
-            start_time: startTime,
-            end_time: endTime,
-            period: `[${startTime},${endTime})`,
-          };
-        });
-
         // embed id into the resulting event
         resultingEvent.id = id;
+
+        // generate spans
+        const spans = Storage.Storage(data.parsedRRule, data.duration, id);
 
         return knex(EVENT_SPANS_TABLE)
           .transacting(trx)
@@ -80,9 +85,46 @@ class Storage {
     ));
   }
 
-  updateEvent(id, data) {
-    // TODO: if rrule changed we need to regenerate spans
-    return this.client(EVENT_TABLE).where({ id }).update(data);
+  updateEventMeta(id, owner, data, trx = false) {
+    const knex = this.client;
+
+    // query builder
+    let query = knex(EVENT_TABLE);
+
+    if (trx) {
+      query = query.transacting(trx);
+    }
+
+    return query
+      .where({ id, owner })
+      .update(data)
+      .returning(['id', 'duration'])
+      .then((results) => {
+        if (results.length === 0) {
+          throw new Errors.HttpStatusError(404, `event ${id} not found for owner ${owner}`);
+        }
+
+        // all OK
+        // return { id, duration }
+        return results[0];
+      });
+  }
+
+  updateEvent(id, owner, data) {
+    const knex = this.client;
+    return knex.transaction(trx => (
+      this
+        .updateEvent(id, owner, data, trx)
+        .then(({ duration }) => {
+          const spans = Storage.Storage(data.parsedRRule, duration, id);
+          return Promise.join(
+            knex(EVENT_SPANS_TABLE).transacting(trx).where('event_id', id).del(),
+            knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans)
+          );
+        })
+        .tap(trx.commit)
+        .catch(trx.rollback)
+    ));
   }
 
   getEvent(id) {
@@ -91,7 +133,7 @@ class Storage {
         return results[0];
       }
 
-      throw new Error(`Event with id ${id} not found`);
+      throw new Errors.HttpStatusError(404, `Event with id ${id} not found`);
     });
   }
 

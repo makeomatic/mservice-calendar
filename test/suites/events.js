@@ -43,7 +43,7 @@ describe('Events Suite', function EventsSuite() {
 
   describe('Create', () => {
     it('should not be able to create event without token', () => (
-      request(uri.create, event1).then((response) => {
+      request(uri.create, { event: event1 }).then((response) => {
         const { body, statusCode } = response;
 
         assert.equal(statusCode, 400);
@@ -58,7 +58,7 @@ describe('Events Suite', function EventsSuite() {
     ));
 
     it('should not be able to create event with user token', () => (
-      request(uri.create, Object.assign({ token: this.userToken }, event1))
+      request(uri.create, { token: this.userToken, event: event1 })
       .then((response) => {
         const { body, statusCode } = response;
 
@@ -74,7 +74,7 @@ describe('Events Suite', function EventsSuite() {
     ));
 
     it('Create recurring event successfully', () => (
-      request(uri.create, Object.assign({ token: this.adminToken }, event1))
+      request(uri.create, { token: this.adminToken, event: Object.assign({}, event1) })
       .then((response) => {
         const { body, statusCode } = response;
 

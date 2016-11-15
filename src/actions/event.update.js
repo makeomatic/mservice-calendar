@@ -7,8 +7,14 @@ const isAdmin = require('../middlewares/isAdmin');
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.update.json} apiParam
  */
-function EventUpdateAction({ params }) {
-  return this.services.event.update(params);
+function EventUpdateAction({ params, auth }) {
+  // attach owner, so that we can only update this
+  const owner = auth.credentials.user.id;
+  const event = params.event;
+  const id = params.id;
+
+  // update the event
+  return this.services.event.update(id, owner, event);
 }
 
 EventUpdateAction.auth = 'token';
