@@ -128,7 +128,7 @@ class Storage {
         knex.raw(`array_to_json(array_agg("${EVENT_SPANS_TABLE}"."start_time")) as start_time`),
       ])
       .from(EVENT_TABLE)
-      .joinRaw(`LEFT JOIN ${EVENT_SPANS_TABLE} on (`
+      .joinRaw(`INNER JOIN ${EVENT_SPANS_TABLE} on (`
         + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
         + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
         + ')'
