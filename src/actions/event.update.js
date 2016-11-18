@@ -2,7 +2,7 @@ const isAdmin = require('../middlewares/isAdmin');
 const { successResponse } = require('../utils/response');
 
 /**
- * @api {http} <prefix>.event.create Update old event
+ * @api {http} <prefix>.event.update Update existing event
  * @apiVersion 1.0.0
  * @apiName event.update
  * @apiGroup Event
