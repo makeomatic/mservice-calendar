@@ -6,7 +6,7 @@ const { login } = require('../helpers/users');
 describe('Events Suite', function EventsSuite() {
   const Calendar = require('../../src');
   const calendar = new Calendar(global.SERVICES);
-  const now = new Date(2016, 11, 16);
+  const now = () => moment(new Date(2016, 10, 16));
 
   before('start service', () => calendar.connect());
   after('stop service', () => calendar.close());
@@ -100,8 +100,8 @@ describe('Events Suite', function EventsSuite() {
         owner: 'admin@foo.com',
         tags: ['music', 'news'],
         hosts: ['dj simons', 'borkman'],
-        startTime: moment(now).subtract(1, 'months').toISOString(),
-        endTime: moment(now).add(1, 'months').toISOString(),
+        startTime: now().subtract(1, 'months').toISOString(),
+        endTime: now().add(1, 'months').toISOString(),
       })
       .then((response) => {
         const { body, statusCode } = response;
@@ -192,8 +192,8 @@ describe('Events Suite', function EventsSuite() {
         owner: 'admin@foo.com',
         tags: ['music', 'news'],
         hosts: ['dj simons', 'borkman'],
-        startTime: moment(now).subtract(1, 'months').toISOString(),
-        endTime: moment(now).add(1, 'months').toISOString(),
+        startTime: now().subtract(1, 'months').toISOString(),
+        endTime: now().add(1, 'months').toISOString(),
       })
       .then((response) => {
         const { body, statusCode } = response;
@@ -233,8 +233,8 @@ describe('Events Suite', function EventsSuite() {
     it('should return a sample list of updated events', () => (
       request(uri.list, {
         owner: 'admin@foo.com',
-        startTime: moment(now).subtract(1, 'year').toISOString(),
-        endTime: moment(now).add(1, 'year').toISOString(),
+        startTime: now().subtract(1, 'year').toISOString(),
+        endTime: now().add(1, 'year').toISOString(),
       })
       .then((response) => {
         const { body, statusCode } = response;
