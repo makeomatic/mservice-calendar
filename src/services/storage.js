@@ -133,7 +133,7 @@ class Storage {
         + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
         + ')'
       )
-      .where(`${EVENT_TABLE}.owner`, owner)
+      .where(`${EVENT_TABLE}.owner`, owner.toLowerCase())
       .groupByRaw(`${EVENT_TABLE}.id`)
       .orderBy(knex.raw(`MIN("${EVENT_SPANS_TABLE}"."start_time")`), 'asc')
       .orderBy('id', 'asc');

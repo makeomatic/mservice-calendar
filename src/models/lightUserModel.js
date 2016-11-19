@@ -1,6 +1,6 @@
 class LightUserModel {
   constructor(id, name, roles = []) {
-    this.id = id;
+    this.id = id.toLowerCase();
     this.name = name;
     this.roles = roles;
   }
