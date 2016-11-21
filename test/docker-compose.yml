@@ -82,6 +82,8 @@ services:
   postgres:
     expose:
       - "5432"
-    image: postgres:9.5.4
+    image: postgres:9.5.5-alpine
+    volumes:
+      - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
     container_name: pg
     hostname: pg

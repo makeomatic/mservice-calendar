@@ -73,7 +73,8 @@ class Event {
     // in that case duration is not specified either
     if (is.undefined(event.rrule)) {
       this.log.info('updating event meta', event);
-      return yield this.storage.updateEventMeta(id, owner, event);
+      event.owner = owner;
+      return yield this.storage.updateEventMeta(id, event);
     }
 
     // validation rules require the duration to be specified

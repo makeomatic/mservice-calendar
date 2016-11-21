@@ -40,12 +40,19 @@ describe('Events Suite', function EventsSuite() {
     duration: 30,
   };
 
+  const event2 = {
+    title: 'Test event 2 - start right after 1',
+    description: 'recurring',
+    rrule: 'FREQ=WEEKLY;DTSTART=20160920T213000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
+    duration: 30,
+  };
+
   const update = {
     // In-case of MONTHLY we MUST specify day of which week we want to use. Every 3rd monday
     // otherwise monthly would only mean this day
     // We can also remove BYDAY and it will be months starting from DTSTART and + month
     rrule: 'FREQ=MONTHLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=3MO',
-    duration: 60,
+    duration: 15,
   };
 
   describe('Create', () => {
@@ -88,6 +95,34 @@ describe('Events Suite', function EventsSuite() {
         assert.ok(body.data);
         assert.ok(body.data.id);
         assert.deepEqual(body.data.attributes, Object.assign({ owner: 'admin@foo.com' }, event1));
+
+        return null;
+      })
+    ));
+
+    it('Rejects to create overlapping recurring event', () => (
+      request(uri.create, { token: this.adminToken, event: Object.assign({}, event1) })
+      .then((response) => {
+        const { body, statusCode } = response;
+
+        assert.notEqual(statusCode, 200);
+        assert.equal(body.error, 'Bad Request');
+        assert.equal(body.message, 'Event overlaps with another one');
+        assert.equal(body.name, 'ValidationError');
+
+        return null;
+      })
+    ));
+
+    it('Allows to create event right after the first one', () => (
+      request(uri.create, { token: this.adminToken, event: Object.assign({}, event2) })
+      .then((response) => {
+        const { body, statusCode } = response;
+
+        assert.equal(statusCode, 200);
+        assert.ok(body.data);
+        assert.ok(body.data.id);
+        assert.deepEqual(body.data.attributes, Object.assign({ owner: 'admin@foo.com', tags: [], hosts: [] }, event2));
 
         return null;
       })
@@ -135,7 +170,7 @@ describe('Events Suite', function EventsSuite() {
   });
 
   describe('update event', () => {
-    it('should fail to update event when we rrule, but not duration', () => (
+    it('should fail to update event when we supply rrule, but not duration', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: { rrule: update.rrule } })
       .then((response) => {
         const { body, statusCode } = response;
@@ -150,7 +185,7 @@ describe('Events Suite', function EventsSuite() {
       })
     ));
 
-    it('should fail to update event when we duration, but not rrule', () => (
+    it('should fail to update event when we supply duration, but not rrule', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: { duration: 60 } })
       .then((response) => {
         const { body, statusCode } = response;
@@ -241,8 +276,17 @@ describe('Events Suite', function EventsSuite() {
 
         assert.equal(statusCode, 200);
         assert.ok(body.meta);
-        assert.equal(body.meta.count, 0);
-        assert.equal(body.data.length, 0);
+        assert.equal(body.meta.count, 1);
+        assert.equal(body.data.length, 1);
+
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.cursor, 3);
+        assert.equal(body.meta.count, 1);
+        assert.equal(body.data.length, 1);
+        assert.equal(body.data[0].id, 3);
+        assert.equal(body.data[0].type, 'event');
+        assert.ok(body.data[0].attributes);
 
         return null;
       })

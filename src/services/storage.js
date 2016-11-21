@@ -10,19 +10,24 @@ class Storage {
     this.log = logger;
   }
 
-  static generateSpans(rrule, duration, id) {
-    const events = rrule.all();
+  static generateSpans(id, { parsedRRule, duration, owner }) {
+    const events = parsedRRule.all();
     return events.map((span) => {
       const startTime = span.toISOString();
       const endTime = moment(span).add(duration, 'minutes').toISOString();
 
       return {
         event_id: id,
+        owner,
         start_time: startTime,
         end_time: endTime,
         period: `[${startTime},${endTime})`,
       };
     });
+  }
+
+  static HandleOverlap() {
+    throw new Errors.ValidationError('Event overlaps with another one');
   }
 
   /**
@@ -48,7 +53,7 @@ class Storage {
         resultingEvent.id = id;
 
         // generate spans
-        const spans = Storage.generateSpans(data.parsedRRule, data.duration, id);
+        const spans = Storage.generateSpans(id, data);
         this.log.debug('generated spans %d', spans.length);
 
         return knex(EVENT_SPANS_TABLE)
@@ -57,11 +62,12 @@ class Storage {
           .return(resultingEvent);
       })
       .tap(trx.commit)
-      .catch(e => trx.rollback().throw(e))
+      .catch({ routine: 'check_exclusion_or_unique_constraint' }, Storage.HandleOverlap)
+      .catch(e => e.name !== 'ValidationError', trx.rollback)
     ));
   }
 
-  updateEventMeta(id, owner, data, trx = false) {
+  updateEventMeta(id, data, trx = false) {
     const knex = this.client;
 
     // query builder
@@ -72,11 +78,11 @@ class Storage {
     }
 
     return query
-      .where({ id, owner })
+      .where({ id, owner: data.owner })
       .update(data)
       .then((results) => {
         if (results.length === 0) {
-          throw new Errors.HttpStatusError(404, `event ${id} not found for owner ${owner}`);
+          throw new Errors.HttpStatusError(404, `event ${id} not found for owner ${data.owner}`);
         }
 
         // all OK
@@ -85,19 +91,22 @@ class Storage {
   }
 
   updateEvent(id, owner, data) {
+    data.owner = owner;
+
     const knex = this.client;
-    const spans = Storage.generateSpans(data.parsedRRule, data.duration, id);
+    const spans = Storage.generateSpans(id, data);
 
     this.log.debug('generated spans %d', spans.length);
 
     return knex.transaction(trx => (
       Promise.join(
-        this.updateEventMeta(id, owner, data, trx),
-        knex(EVENT_SPANS_TABLE).transacting(trx).where('event_id', id).del(),
-        knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans)
+        this.updateEventMeta(id, data, trx),
+        knex(EVENT_SPANS_TABLE).transacting(trx).where('event_id', id).del()
       )
+      .then(() => knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans))
       .tap(trx.commit)
-      .catch(e => trx.rollback().throw(e))
+      .catch({ routine: 'check_exclusion_or_unique_constraint' }, Storage.HandleOverlap)
+      .catch(e => e.name !== 'HttpStatusError', trx.rollback)
     ));
   }
 
