@@ -33,15 +33,13 @@ class Event {
       opts.count = 365;
     }
 
-    assert(
-      moment(opts.until).subtract(1, 'year').isBefore(now),
-      'UNTIL must be within a year from now'
-    );
+    const until = moment(opts.until);
+    const dtstart = moment(opts.dtstart);
 
-    assert(
-      moment(opts.dtstart).add(1, 'year').isAfter(now),
-      'DTSTART must be without the last year'
-    );
+    // ensure that until > dtstart and is not too far in the past
+    assert(until.isAfter(dtstart), 'DTSTART must be before UNTIL');
+    assert(until.subtract(1, 'year').isBefore(now), 'UNTIL must be within a year from now');
+    assert(dtstart.add(1, 'year').isAfter(now), 'DTSTART must be without the last year');
 
     // do not cache RRule, we are not likely to work with same events
     // also do not make it enumerable, so that we don't need to omit it later
