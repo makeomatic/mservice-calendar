@@ -39,11 +39,11 @@
     "ms-conf": "^2.3.0",
     "ms-validation": "^3.0.0",
     "mservice": "^4.6.0",
-    "node-uuid": "^1.4.7",
     "pg": "^6.1.0",
     "pg-native": "^1.10.0",
     "rrule": "^2.1.0",
-    "uid2": "0.0.3"
+    "uid2": "0.0.3",
+    "uuid": "^3.0.0"
   },
   "devDependencies": {
     "apidoc": "^0.16.1",
