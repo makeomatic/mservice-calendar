@@ -9,7 +9,7 @@ PATH=$PATH:$DIR/.bin/
 COMPOSE=$(which docker-compose)
 MOCHA=$BIN/_mocha
 COVER="$BIN/istanbul cover"
-NODE=node
+NODE=$BIN/flow-node
 TESTS=${TESTS:-test/suites/*.js}
 COMPOSE="docker-compose -f $DC"
 

@@ -1,0 +1,12 @@
+[ignore]
+<PROJECT_ROOT>/test/.*
+<PROJECT_ROOT>/node_modules/flow-remove-types/.*
+<PROJECT_ROOT>/node_modules/json/.*
+<PROJECT_ROOT>/node_modules/config-chain/.*
+<PROJECT_ROOT>/node_modules/npmconf/.*
+
+[include]
+
+[libs]
+
+[options]

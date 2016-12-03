@@ -1,16 +1,31 @@
+/**
+ * services/storage.js
+ * @flow
+ */
+
 const Promise = require('bluebird');
 const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS } = require('../constants');
 const { pick } = require('lodash');
 const moment = require('moment');
 const Errors = require('common-errors');
 
+const isOverlapping = { routine: 'check_exclusion_or_unique_constraint' };
+const timestampRegexp = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/g;
+const momentFormat = 'YYYY-MM-DD HH:mm:ss';
+const overlapError = (a, b) =>
+  `You want to create an event starting at ${a}, but it overlaps with another one at ${b}`;
+
 class Storage {
-  constructor(knex, logger) {
+  log: Object;
+  client: any;
+
+  constructor(knex: any, logger: Object) {
     this.client = knex;
     this.log = logger;
   }
 
-  static generateSpans(id, { parsedRRule, duration, owner }) {
+  static generateSpans(id: number, data: Object): Array<Object> {
+    const { parsedRRule, duration, owner } = data;
     const events = parsedRRule.all();
     return events.map((span) => {
       const startTime = span.toISOString();
@@ -26,16 +41,20 @@ class Storage {
     });
   }
 
-  static HandleOverlap() {
-    throw new Errors.ValidationError('Event overlaps with another one');
+  static HandleOverlap(e: Object) {
+    // detail: 'Key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00"))
+    // conflicts with existing key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00")).',
+    const [one, , two] = e.detail.match(timestampRegexp);
+    const events = [one, two].map(time => moment(time, momentFormat).format('llll'));
+    throw new Errors.ValidationError(overlapError(...events));
   }
 
   /**
    * Inserts event data into the PGSQL database
    * Expands
    */
-  createEvent(data) {
-    // won't be more than 365 events due to constraints we have
+  createEvent(data: Object) {
+    // won't be more than 365 e vents due to constraints we have
     const knex = this.client;
     const resultingEvent = pick(data, EVENT_FIELDS);
 
@@ -62,12 +81,12 @@ class Storage {
           .return(resultingEvent);
       })
       .tap(trx.commit)
-      .catch({ routine: 'check_exclusion_or_unique_constraint' }, Storage.HandleOverlap)
+      .catch(isOverlapping, Storage.HandleOverlap)
       .catch(e => e.name !== 'ValidationError', trx.rollback)
     ));
   }
 
-  updateEventMeta(id, data, trx = false) {
+  updateEventMeta(id: number, data: Object, trx: Object | boolean = false) {
     const knex = this.client;
 
     // query builder
@@ -90,7 +109,7 @@ class Storage {
       });
   }
 
-  updateEvent(id, owner, data) {
+  updateEvent(id: number, owner: string, data: Object) {
     data.owner = owner;
 
     const knex = this.client;
@@ -105,12 +124,12 @@ class Storage {
       )
       .then(() => knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans))
       .tap(trx.commit)
-      .catch({ routine: 'check_exclusion_or_unique_constraint' }, Storage.HandleOverlap)
+      .catch(isOverlapping, Storage.HandleOverlap)
       .catch(e => e.name !== 'HttpStatusError', trx.rollback)
     ));
   }
 
-  getEvent(id, owner) {
+  getEvent(id: number, owner: string) {
     return this.client(EVENT_TABLE).where({ id, owner }).then((results) => {
       if (results.length > 0) {
         return results[0];
@@ -120,7 +139,8 @@ class Storage {
     });
   }
 
-  getEvents({ owner, tags, hosts, startTime, endTime }) {
+  getEvents(filter: Object) {
+    const { owner, tags, hosts, startTime, endTime } = filter;
     const knex = this.client;
 
     this.log.debug('querying %s between %s and %s', owner, startTime, endTime);
@@ -160,12 +180,13 @@ class Storage {
   }
 
   // EVENT_SPANS_TABLE will be deleted using foreign key CASCADE on DELETE
-  removeEvent({ id, owner }) {
+  removeEvent(filter: Object) {
+    const { id, owner } = filter;
     const knex = this.client;
     return knex(EVENT_TABLE).where({ id, owner }).del();
   }
 
-  subscribeToEvent(data) {
+  subscribeToEvent(data: Object) {
     let query;
     const subscriber = `{${data.subscriber}}`;
     if (!data.notify) {

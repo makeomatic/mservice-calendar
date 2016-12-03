@@ -107,7 +107,11 @@ describe('Events Suite', function EventsSuite() {
 
         assert.notEqual(statusCode, 200);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.message, 'Event overlaps with another one');
+        assert.equal(
+          body.message,
+          'You want to create an event starting at Mon, Sep 26, 2016 9:00 PM, ' +
+          'but it overlaps with another one at Mon, Sep 26, 2016 9:00 PM'
+        );
         assert.equal(body.name, 'ValidationError');
 
         return null;

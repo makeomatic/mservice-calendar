@@ -3,7 +3,7 @@
 // accepts conf through .env file
 // suitable for configuring this in the docker env
 const configuration = require('ms-conf');
-const Calendar = require('../src');
+const Calendar = require('../lib');
 
 const calendar = new Calendar(configuration.get('/'));
 

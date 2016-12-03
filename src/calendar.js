@@ -1,3 +1,7 @@
+/*
+ * calendar.js
+ * @flow
+ */
 const _ = require('lodash');
 const { globFiles } = require('ms-conf/lib/load-config');
 const MService = require('mservice');
@@ -13,7 +17,7 @@ class Calendar extends MService {
   /**
    * @param config
    */
-  constructor(config = {}) {
+  constructor(config: ?Object = {}) {
     super(_.merge({}, defaultConfig, config));
     this.addConnector(MService.ConnectorsTypes.migration, () => this.migrate('knex'));
     this.services = {};
