@@ -1,5 +1,5 @@
 const assert = require('assert');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const request = require('../helpers/request');
 const { login } = require('../helpers/users');
 
@@ -38,6 +38,7 @@ describe('Events Suite', function EventsSuite() {
     hosts: ['dj maverick', 'dj simons'],
     rrule: 'FREQ=WEEKLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
     duration: 30,
+    tz: 'America/Chicago',
   };
 
   const event2 = {
@@ -45,6 +46,7 @@ describe('Events Suite', function EventsSuite() {
     description: 'recurring',
     rrule: 'FREQ=WEEKLY;DTSTART=20160920T213000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
     duration: 30,
+    tz: 'Europe/Moscow',
   };
 
   const update = {
@@ -60,7 +62,7 @@ describe('Events Suite', function EventsSuite() {
       request(uri.create, { event: event1 }).then((response) => {
         const { body, statusCode } = response;
 
-        assert.ok(/data should have required property 'token'/.test(body.message));
+        assert.ok(/data should have required property 'token'/.test(body.message), JSON.stringify(body));
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
@@ -91,10 +93,13 @@ describe('Events Suite', function EventsSuite() {
       .then((response) => {
         const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200);
+        assert.equal(statusCode, 200, JSON.stringify(body));
         assert.ok(body.data);
         assert.ok(body.data.id);
-        assert.deepEqual(body.data.attributes, Object.assign({ owner: 'admin@foo.com' }, event1));
+
+        const comparison = Object.assign({ owner: 'admin@foo.com' }, event1);
+        delete comparison.tz;
+        assert.deepEqual(body.data.attributes, comparison);
 
         return null;
       })
@@ -109,8 +114,8 @@ describe('Events Suite', function EventsSuite() {
         assert.equal(body.error, 'Bad Request');
         assert.equal(
           body.message,
-          'You want to create an event starting at Mon, Sep 26, 2016 9:00 PM, ' +
-          'but it overlaps with another one at Mon, Sep 26, 2016 9:00 PM'
+          'You want to create an event starting at Mon, Sep 26, 2016 4:00 PM, ' +
+          'but it overlaps with another one at Mon, Sep 26, 2016 4:00 PM'
         );
         assert.equal(body.name, 'ValidationError');
 
@@ -126,7 +131,11 @@ describe('Events Suite', function EventsSuite() {
         assert.equal(statusCode, 200);
         assert.ok(body.data);
         assert.ok(body.data.id);
-        assert.deepEqual(body.data.attributes, Object.assign({ owner: 'admin@foo.com', tags: [], hosts: [] }, event2));
+
+        const comparison = Object.assign({ owner: 'admin@foo.com', tags: [], hosts: [] }, event2);
+        delete comparison.tz;
+
+        assert.deepEqual(body.data.attributes, comparison);
 
         return null;
       })
@@ -154,7 +163,7 @@ describe('Events Suite', function EventsSuite() {
         assert.equal(body.data[0].type, 'event');
         assert.ok(body.data[0].attributes);
 
-        assert.deepEqual(body.data[0].attributes, Object.assign({
+        const precalculatedTime = Object.assign({
           start_time: [
             '2016-10-17T21:00:00+00:00',
             '2016-10-24T21:00:00+00:00',
@@ -166,7 +175,15 @@ describe('Events Suite', function EventsSuite() {
             '2016-12-05T21:00:00+00:00',
             '2016-12-12T21:00:00+00:00',
           ],
-        }, event1));
+        }, event1);
+
+        delete precalculatedTime.tz;
+
+        assert.deepEqual(
+          body.data[0].attributes,
+          precalculatedTime,
+          JSON.stringify({ start: body.data[0].attributes.start_time, end: precalculatedTime.start_time })
+        );
 
         return null;
       })
@@ -179,7 +196,7 @@ describe('Events Suite', function EventsSuite() {
       .then((response) => {
         const { body, statusCode } = response;
 
-        assert.ok(/data\.event should have required property 'duration'/.test(body.message));
+        assert.ok(/data\.event should have property duration when property rrule is present/.test(body.message), JSON.stringify(body));
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
@@ -194,7 +211,7 @@ describe('Events Suite', function EventsSuite() {
       .then((response) => {
         const { body, statusCode } = response;
 
-        assert.ok(/data\.event should have required property 'rrule'/.test(body.message));
+        assert.ok(/data\.event should have property rrule when property duration is present/.test(body.message), JSON.stringify(body));
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
@@ -246,12 +263,16 @@ describe('Events Suite', function EventsSuite() {
         assert.equal(body.data[0].type, 'event');
         assert.ok(body.data[0].attributes);
 
-        assert.deepEqual(body.data[0].attributes, Object.assign({
+        const precalculatedTime = Object.assign({
           start_time: [
             '2016-10-17T21:00:00+00:00',
             '2016-11-21T21:00:00+00:00',
           ],
-        }, event1, update, { title: 'nom-nom' }));
+        }, event1, update, { title: 'nom-nom' });
+
+        delete precalculatedTime.tz;
+
+        assert.deepEqual(body.data[0].attributes, precalculatedTime);
 
         return null;
       })

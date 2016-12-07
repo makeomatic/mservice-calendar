@@ -8,6 +8,9 @@
     "event": {
       "type": "object",
       "properties": {
+        "tz": {
+          "type": "string"
+        },
         "hosts": {
           "type": "array",
           "items": {

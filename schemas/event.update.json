@@ -24,44 +24,13 @@
             "notifications",
             "subscribers"
           ]
+        },
+        "dependencies": {
+          "rrule": [ "duration" ],
+          "duration": [ "rrule" ]
         }
       }]
     }
   },
-  "switch": [{
-    "if": {
-      "properties": {
-        "event": {
-          "type": "object",
-          "required": ["rrule"]
-        }
-      }
-    },
-    "then": {
-      "properties": {
-        "event": {
-          "type": "object",
-          "required": ["duration"]
-        }
-      }
-    }
-  }, {
-    "if": {
-      "properties": {
-        "event": {
-          "type": "object",
-          "required": ["duration"]
-        }
-      }
-    },
-    "then": {
-      "properties": {
-        "event": {
-          "type": "object",
-          "required": ["rrule"]
-        }
-      }
-    }
-  }],
   "additionalProperties": false
 }
