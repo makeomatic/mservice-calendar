@@ -6,9 +6,10 @@
 const Promise = require('bluebird');
 const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS } = require('../constants');
 const { pick } = require('lodash');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const Errors = require('common-errors');
 
+const defaultTZ = moment.tz.guess();
 const isOverlapping = { routine: 'check_exclusion_or_unique_constraint' };
 const timestampRegexp = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/g;
 const momentFormat = 'YYYY-MM-DD HH:mm:ss';
@@ -41,11 +42,11 @@ class Storage {
     });
   }
 
-  static HandleOverlap(e: Object) {
+  static HandleOverlap(e: Object, tz: String = defaultTZ) {
     // detail: 'Key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00"))
     // conflicts with existing key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00")).',
     const [one, , two] = e.detail.match(timestampRegexp);
-    const events = [one, two].map(time => moment(time, momentFormat).format('llll'));
+    const events = [two, one].map(time => moment(time, momentFormat).tz(tz).format('llll'));
     throw new Errors.ValidationError(overlapError(...events));
   }
 
@@ -81,7 +82,7 @@ class Storage {
           .return(resultingEvent);
       })
       .tap(trx.commit)
-      .catch(isOverlapping, Storage.HandleOverlap)
+      .catch(isOverlapping, e => Storage.HandleOverlap(e, data.tz))
       .catch(e => e.name !== 'ValidationError', trx.rollback)
     ));
   }
@@ -91,6 +92,7 @@ class Storage {
 
     // query builder
     let query = knex(EVENT_TABLE);
+    const resultingEvent = pick(data, EVENT_FIELDS);
 
     if (trx) {
       query = query.transacting(trx);
@@ -98,7 +100,7 @@ class Storage {
 
     return query
       .where({ id, owner: data.owner })
-      .update(data)
+      .update(resultingEvent)
       .then((results) => {
         if (results.length === 0) {
           throw new Errors.HttpStatusError(404, `event ${id} not found for owner ${data.owner}`);
@@ -124,7 +126,7 @@ class Storage {
       )
       .then(() => knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans))
       .tap(trx.commit)
-      .catch(isOverlapping, Storage.HandleOverlap)
+      .catch(isOverlapping, e => Storage.HandleOverlap(e, data.tz))
       .catch(e => e.name !== 'HttpStatusError', trx.rollback)
     ));
   }

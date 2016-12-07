@@ -3,7 +3,7 @@ version: '2'
 services:
   tester:
     container_name: tester
-    image: makeomatic/node:7.1.0-tester
+    image: makeomatic/node:7.2.0-tester
     depends_on:
       - postgres
       - rabbitmq
@@ -60,7 +60,7 @@ services:
       - redis-3
       - rabbitmq
       - redis-client
-    image: makeomatic/ms-users:7.1.0
+    image: makeomatic/ms-users:7.2.0
     hostname: ms-users
     container_name: ms-users
     volumes:
@@ -75,9 +75,11 @@ services:
   rabbitmq:
     expose:
       - "5672"
-    image: makeomatic/alpine-rabbitmq:3.5.7
+    image: makeomatic/rabbitmq:3.6.6
     container_name: rabbitmq
     hostname: rabbitmq
+    volumes:
+      - ./configs/rabbitmq/rabbitmq.config:/usr/lib/rabbitmq/etc/rabbitmq/rabbitmq.config
 
   postgres:
     expose:

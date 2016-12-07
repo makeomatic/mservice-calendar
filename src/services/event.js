@@ -4,8 +4,11 @@ const RRule = require('rrule').RRule;
 const moment = require('moment-timezone');
 const assert = require('assert');
 const is = require('is');
-
 const { coroutine } = require('../utils/getMethods');
+
+const zones = {};
+const aggregateZones = (acc, zone) => { acc[zone] = true; return acc; };
+moment.tz.names().reduce(aggregateZones, zones);
 
 const BannedRRuleFreq = {
   [RRule.HOURLY]: true,
@@ -40,6 +43,11 @@ class Event {
     assert(until.isAfter(dtstart), 'DTSTART must be before UNTIL');
     assert(until.subtract(1, 'year').isBefore(now), 'UNTIL must be within a year from now');
     assert(dtstart.add(1, 'year').isAfter(now), 'DTSTART must be without the last year');
+
+    const tz = data.tz;
+    if (tz) {
+      assert(zones[tz], `${tz} must be one of the supported by moment-timezone`);
+    }
 
     // do not cache RRule, we are not likely to work with same events
     // also do not make it enumerable, so that we don't need to omit it later
