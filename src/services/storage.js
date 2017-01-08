@@ -163,11 +163,12 @@ class Storage {
         + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
         + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
         + ')'
-      )
-      .where(`${EVENT_TABLE}.owner`, owner.toLowerCase())
-      .groupByRaw(`${EVENT_TABLE}.id`)
-      .orderBy(knex.raw(`MIN("${EVENT_SPANS_TABLE}"."start_time")`), 'asc')
-      .orderBy('id', 'asc');
+      );
+
+    // filter clauses
+    if (owner) {
+      query.where(`${EVENT_TABLE}.owner`, owner.toLowerCase());
+    }
 
     // add this to query
     if (tags) {
@@ -177,6 +178,12 @@ class Storage {
     if (hosts) {
       query.where(`${EVENT_TABLE}.hosts`, '&&', hosts);
     }
+
+    // groupping and order closes
+    query
+      .groupByRaw(`${EVENT_TABLE}.id`)
+      .orderBy(knex.raw(`MIN("${EVENT_SPANS_TABLE}"."start_time")`), 'asc')
+      .orderBy('id', 'asc');
 
     return query;
   }

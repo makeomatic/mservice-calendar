@@ -2,7 +2,7 @@ const is = require('is');
 const LightUserModel = require('../models/lightUserModel');
 const Promise = require('bluebird');
 const uid2 = require('uid2');
-const uuid = require('node-uuid');
+const uuid = require('uuid');
 
 const { ROLE_GUEST } = LightUserModel;
 

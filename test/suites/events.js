@@ -188,6 +188,50 @@ describe('Events Suite', function EventsSuite() {
         return null;
       })
     ));
+
+    it('should return a sample list of events for supplied tags', () => (
+      request(uri.list, {
+        tags: ['music', 'news'],
+        startTime: now().subtract(1, 'months').toISOString(),
+        endTime: now().add(1, 'months').toISOString(),
+      })
+      .then((response) => {
+        const { body, statusCode } = response;
+
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.cursor, 1);
+        assert.equal(body.meta.count, 1);
+        assert.equal(body.data.length, 1);
+        assert.equal(body.data[0].id, 1);
+        assert.equal(body.data[0].type, 'event');
+        assert.ok(body.data[0].attributes);
+
+        const precalculatedTime = Object.assign({
+          start_time: [
+            '2016-10-17T21:00:00+00:00',
+            '2016-10-24T21:00:00+00:00',
+            '2016-10-31T21:00:00+00:00',
+            '2016-11-07T21:00:00+00:00',
+            '2016-11-14T21:00:00+00:00',
+            '2016-11-21T21:00:00+00:00',
+            '2016-11-28T21:00:00+00:00',
+            '2016-12-05T21:00:00+00:00',
+            '2016-12-12T21:00:00+00:00',
+          ],
+        }, event1);
+
+        delete precalculatedTime.tz;
+
+        assert.deepEqual(
+          body.data[0].attributes,
+          precalculatedTime,
+          JSON.stringify({ start: body.data[0].attributes.start_time, end: precalculatedTime.start_time })
+        );
+
+        return null;
+      })
+    ));
   });
 
   describe('update event', () => {
