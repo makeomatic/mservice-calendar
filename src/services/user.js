@@ -32,11 +32,17 @@ class UserService {
       .then(response => makeUser(response.metadata[audience]));
   }
 
-  getById(username) {
+  getById(username, fields) {
     const { audience, prefix, postfix, timeouts } = this.config;
 
     const route = `${prefix}.${postfix.getMetadata}`;
     const timeout = timeouts.getMetadata;
+    const message = { username, audience };
+
+    // add fields we are interested in
+    if (fields) {
+      message.fields = { [audience]: fields };
+    }
 
     return this.amqp
       .publishAndWait(route, { username, audience }, { timeout })
