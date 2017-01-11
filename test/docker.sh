@@ -8,8 +8,8 @@ DC="$DIR/docker-compose.yml"
 PATH=$PATH:$DIR/.bin/
 COMPOSE=$(which docker-compose)
 MOCHA=$BIN/_mocha
-COVER="$BIN/istanbul cover"
-NODE=$BIN/flow-node
+COVER="$BIN/isparta cover"
+NODE=$BIN/babel-node
 TESTS=${TESTS:-test/suites/*.js}
 COMPOSE="docker-compose -f $DC"
 
@@ -38,12 +38,12 @@ rm -rf ./coverage
 echo "running tests"
 for fn in $TESTS; do
   echo "running $fn"
-  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- $fn" || exit 1
+  docker exec tester /bin/sh -c "$NODE $COVER --dir ./coverage/${fn##*/} $MOCHA -- --trace-deprecation $fn" || exit 1
 done
 
 # coverage report
 echo "started generating combined coverage"
-docker exec tester node ./test/aggregate-report.js
+docker exec tester test/aggregate-report.js
 
 echo "uploading coverage report from ./coverage/lcov.info"
 if [[ "$CI" == "true" ]]; then
