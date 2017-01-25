@@ -5,6 +5,9 @@
 # NOTICE: PGSQL extensions required
 
 Ensure to enable this: `CREATE EXTENSION btree_gist;`
+Ensure to enable this: `CREATE EXTENSION btree_gin;`
+
+These will allow us to create indices on varchar[] & date ranges
 
 # What we can do:
 

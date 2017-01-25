@@ -32,6 +32,7 @@ describe('Events Suite', function EventsSuite() {
     build: 'http://0.0.0.0:3000/api/calendar/build',
     createTag: 'http://0.0.0.0:3000/api/calendar/event/tags/create',
     listTags: 'http://0.0.0.0:3000/api/calendar/event/tags/list',
+    removeTag: 'http://0.0.0.0:3000/api/calendar/event/tags/delete',
   };
 
   const event1 = {
@@ -338,6 +339,9 @@ describe('Events Suite', function EventsSuite() {
       priority: 10,
     };
 
+    const startTime = now().toISOString();
+    const endTime = now().add(2, 'month').toISOString();
+
     it('allows to create a tag', () => (
       request(uri.createTag, {
         tag,
@@ -355,7 +359,7 @@ describe('Events Suite', function EventsSuite() {
     ));
 
     it('returns all tags', () => (
-      request(uri.listTags, { active: false })
+      request(uri.listTags, { active: false, startTime, endTime })
       .then((response) => {
         assert.equal(response.statusCode, 200);
         assert.deepEqual(response.body.data, [{
@@ -368,7 +372,7 @@ describe('Events Suite', function EventsSuite() {
     ));
 
     it('returns active tags', () => (
-      request(uri.listTags, { active: true })
+      request(uri.listTags, { active: true, startTime, endTime })
       .then((response) => {
         assert.equal(response.statusCode, 200);
         assert.deepEqual(response.body.data, []);
@@ -377,11 +381,8 @@ describe('Events Suite', function EventsSuite() {
     ));
 
     it('adds event with a tag', () => (
-      request(uri.create, {
-        token: this.adminToken,
-        event: Object.assign({}, event1, { tags: [tag.id] }),
-      })
-      .then(() => request(uri.listTags, { active: true }))
+      request(uri.update, { id: 1, token: this.adminToken, event: { tags: [tag.id] } })
+      .then(() => request(uri.listTags, { active: true, startTime, endTime }))
       .then((response) => {
         assert.equal(response.statusCode, 200);
         assert.deepEqual(response.body.data, [{
@@ -389,6 +390,23 @@ describe('Events Suite', function EventsSuite() {
           type: 'tag',
           attributes: omit(tag, 'id'),
         }]);
+        return null;
+      })
+    ));
+
+    it('removes tag', () => (
+      request(uri.removeTag, { token: this.adminToken, tag: tag.id })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        return null;
+      })
+    ));
+
+    it('returns active tags after removal', () => (
+      request(uri.listTags, { active: true, startTime, endTime })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, []);
         return null;
       })
     ));

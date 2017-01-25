@@ -19,11 +19,10 @@ function EventTagsList({ method, params, query }) {
 
   // input params
   const isActive = input.active;
-
-  // TODO: make sure we only request recent tags
   const startTime = input.startTime || new Date().toISOString();
-  const endTime = input.endTime || moment().add(1, 'month').toISOString();
+  const endTime = input.endTime || moment().add(2, 'month').toISOString();
 
+  // TODO: assert that we do not request something 1 year from now
   // 1. select available tags
   // 2. filter by any events with the same active tag and return response
 
@@ -39,7 +38,7 @@ function EventTagsList({ method, params, query }) {
 
   if (isActive) {
     dbQuery
-      .joinRaw(`INNER JOIN ${EVENT_TABLE} on ${EVENT_TAGS_TABLE}.id = ANY(${EVENT_TABLE}.tags)`)
+      .joinRaw(`INNER JOIN ${EVENT_TABLE} on ${EVENT_TABLE}.tags @> ARRAY[${EVENT_TAGS_TABLE}.id]`)
       .joinRaw(`INNER JOIN ${EVENT_SPANS_TABLE} on (`
         + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
         + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`

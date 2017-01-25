@@ -4,7 +4,9 @@ const { EVENT_TABLE } = require('../constants');
 // ensures that all events
 exports.up = knex => Promise.all([
   knex.schema.raw(`ALTER TABLE ${EVENT_TABLE} ALTER tags TYPE varchar(30)[]`),
-  knex.schema.raw(`CREATE INDEX tags_gin ON ${EVENT_TABLE} using gin ("tags")`),
+  knex.schema.table(EVENT_TABLE, (table) => {
+    table.index('tags', 'tags_gin', 'gin');
+  }),
 ]);
 
 exports.down = knex => (
