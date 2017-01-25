@@ -42,7 +42,6 @@
     "ms-validation": "^3.0.0",
     "mservice": "^4.7.4",
     "pg": "^6.1.0",
-    "pg-native": "^1.10.0",
     "rrule": "^2.1.0",
     "stdout-stream": "^1.4.0",
     "uid2": "0.0.3",

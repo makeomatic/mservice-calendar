@@ -7,20 +7,17 @@
   ],
   "properties": {
     "token": {
-      "type": "string"
+      "$ref": "common.json#/definitions/token"
     },
     "tag": {
-      "allOf": [{
-        "$ref": "common.json#/definitions/tag"
-      }, {
-        "type": "object",
-        "required": [
-          "id",
-          "eng",
-          "icon",
-          "cover"
-        ]
-      }]
+      "type": "object",
+      "required": [
+        "id",
+        "eng",
+        "icon",
+        "cover"
+      ],
+      "$ref": "common.json#/definitions/tag"
     }
   }
 }

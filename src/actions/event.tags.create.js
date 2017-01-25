@@ -7,10 +7,10 @@ const partial = require('lodash/partial');
 const response = partial(modelResponse, partial.placeholder, TYPE_TAG);
 
 /**
- * @api {http} <prefix>.event.tags.create Create new event
+ * @api {http} <prefix>.event.tags.create Create new tag
  * @apiVersion 1.0.0
  * @apiName event.tags.create
- * @apiGroup Event
+ * @apiGroup Tags
  * @apiSchema {jsonschema=../../schemas/event.tags.create.json} apiParam
  */
 function EventTagsCreate({ params }) {
