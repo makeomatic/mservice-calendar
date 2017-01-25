@@ -5,6 +5,30 @@
       "type": "string",
       "description": "Auth token"
     },
+    "tag": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z\\-]+$"
+        },
+        "eng": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string",
+          "format": "uri"
+        },
+        "cover": {
+          "type": "string",
+          "format": "uri"
+        },
+        "priority": {
+          "type": "integer",
+          "default": 0
+        }
+      }
+    },
     "event": {
       "type": "object",
       "properties": {

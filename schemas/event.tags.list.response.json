@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object"
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/definitions/tag"
+      }
+    }
+  },
+  "additionalProperties": false
+}

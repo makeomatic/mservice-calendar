@@ -1,11 +1,12 @@
 const LightUserModel = require('../models/lightUserModel');
+const Promise = require('bluebird');
 const { NotFoundError, HttpStatusError } = require('common-errors');
 
 function makeUser(userData) {
   const name = `${userData.firstName} ${userData.lastName}`;
 
   return new LightUserModel(
-    userData.username,
+    userData.alias || userData.username,
     name,
     userData.roles
   );
@@ -32,6 +33,35 @@ class UserService {
       .then(response => makeUser(response.metadata[audience]));
   }
 
+  getAliasForEvents(events) {
+    const fields = ['alias', 'username'];
+    const usernamesPool = {};
+
+    events.forEach(UserService.pluckOwner, usernamesPool);
+    const uniqueUsernames = Object.keys(usernamesPool);
+
+    return Promise
+      .bind(this, uniqueUsernames)
+      .map(username => this.getById(username, fields))
+      .then((mappedUsernames) => {
+        uniqueUsernames.forEach((username, idx) => {
+          usernamesPool[username] = mappedUsernames[idx].originalId;
+        });
+
+        events.forEach(UserService.setOwner, usernamesPool);
+
+        return events;
+      });
+  }
+
+  static pluckOwner(event) {
+    this[event.owner] = undefined;
+  }
+
+  static setOwner(event) {
+    event.owner = this[event.owner];
+  }
+
   getById(username, fields) {
     const { audience, prefix, postfix, timeouts } = this.config;
 
@@ -45,7 +75,7 @@ class UserService {
     }
 
     return this.amqp
-      .publishAndWait(route, { username, audience }, { timeout })
+      .publishAndWait(route, message, { timeout, cache: 60000 })
       .then(response => makeUser(response[audience]))
       .catch(HttpStatusError, CheckNotFoundError, () => {
         throw new NotFoundError(`User #${username} not found`);

@@ -156,6 +156,7 @@ class Storage {
         'duration',
         'tags',
         'hosts',
+        `${EVENT_TABLE}.owner`,
         knex.raw(`array_to_json(array_agg("${EVENT_SPANS_TABLE}"."start_time")) as start_time`),
       ])
       .from(EVENT_TABLE)

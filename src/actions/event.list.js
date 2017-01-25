@@ -6,6 +6,17 @@ const { TYPE_EVENT, collectionResponse } = require('../utils/response');
 const response = partial(collectionResponse, partial.placeholder, TYPE_EVENT);
 
 /**
+ * Enriches list params
+ */
+function enrichParams(user) {
+  if (user) {
+    this.owner = user.id;
+  }
+
+  return this;
+}
+
+/**
  * @api {http} <prefix>.event.list List events registered in the system
  * @apiVersion 1.0.0
  * @apiName event.list
@@ -13,18 +24,18 @@ const response = partial(collectionResponse, partial.placeholder, TYPE_EVENT);
  * @apiSchema {jsonschema=../../schemas/event.list.json} apiParam
  */
 function EventListAction({ params }) {
-  return Promise
-    .resolve(params.owner && this.services.user.getById(params.owner, ['username']))
-    .then((user) => {
-      // if not - we didnt supply the id
-      if (user) {
-        params.owner = user.id;
-      }
+  const eventService = this.services.event;
+  const userService = this.services.user;
 
-      return params;
-    })
-    .bind(this.services.event)
-    .then(this.services.event.list)
+  return Promise
+    .bind(params, params.owner && userService.getById(params.owner, ['username']))
+    .then(enrichParams)
+    // resolve event list
+    .bind(eventService)
+    .then(eventService.list)
+    // resolve event list aliases
+    .bind(userService)
+    .then(userService.getAliasForEvents)
     .then(response);
 }
 

@@ -2,6 +2,7 @@ const omit = require('lodash/omit');
 const is = require('is');
 
 const TYPE_EVENT = 'event';
+const TYPE_TAG = 'tag';
 
 function transform(object, type) {
   const response = {
@@ -55,4 +56,5 @@ module.exports = {
   successResponse,
   transform,
   TYPE_EVENT,
+  TYPE_TAG,
 };
