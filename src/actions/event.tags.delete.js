@@ -3,10 +3,10 @@ const { EVENT_TAGS_TABLE } = require('../constants');
 const { successResponse } = require('../utils/response');
 
 /**
- * @api {http} <prefix>.event.tags.create Create new event
+ * @api {http} <prefix>.event.tags.create Remove tag
  * @apiVersion 1.0.0
- * @apiName event.tags.create
- * @apiGroup Event
+ * @apiName event.tags.delete
+ * @apiGroup Tags
  * @apiSchema {jsonschema=../../schemas/event.tags.delete.json} apiParam
  */
 function EventTagsDelete({ params }) {

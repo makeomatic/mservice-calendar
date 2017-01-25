@@ -7,7 +7,7 @@
   ],
   "properties": {
     "token": {
-      "type": "string"
+      "$ref": "common.json#/definitions/token"
     },
     "tag": {
       "$ref": "common.json#/definitions/tag/properties/id"
