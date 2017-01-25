@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "token",
+    "tag"
+  ],
+  "properties": {
+    "token": {
+      "type": "string"
+    },
+    "tag": {
+      "allOf": [{
+        "$ref": "common.json#/definitions/tag"
+      }, {
+        "type": "object",
+        "required": [
+          "id",
+          "eng",
+          "icon",
+          "cover"
+        ]
+      }]
+    }
+  }
+}

@@ -3,6 +3,7 @@ module.exports = {
   EVENT_TYPE: 'event',
   EVENT_TABLE: 'events',
   EVENT_SPANS_TABLE: 'events_spans',
+  EVENT_TAGS_TABLE: 'events_tags',
   EVENT_FIELDS: [
     'owner',
     'rrule',

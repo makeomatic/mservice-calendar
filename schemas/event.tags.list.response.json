@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object"
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "common.json#/definitions/tag/properties/id"
+          },
+          "type": {
+            "type": "string",
+            "constant": "tag"
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "eng": {
+                "$ref": "common.json#/definitions/tag/properties/eng"
+              },
+              "icon": {
+                "$ref": "common.json#/definitions/tag/properties/icon"
+              },
+              "cover": {
+                "$ref": "common.json#/definitions/tag/properties/cover"
+              },
+              "priority": {
+                "$ref": "common.json#/definitions/tag/properties/priority"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -2,6 +2,7 @@ const assert = require('assert');
 const moment = require('moment-timezone');
 const request = require('../helpers/request');
 const { login } = require('../helpers/users');
+const { omit } = require('lodash');
 
 describe('Events Suite', function EventsSuite() {
   const Calendar = require('../../src');
@@ -29,6 +30,9 @@ describe('Events Suite', function EventsSuite() {
     single: 'http://0.0.0.0:3000/api/calendar/event/single',
     subscribe: 'http://0.0.0.0:3000/api/calendar/event/subscribe',
     build: 'http://0.0.0.0:3000/api/calendar/build',
+    createTag: 'http://0.0.0.0:3000/api/calendar/event/tags/create',
+    listTags: 'http://0.0.0.0:3000/api/calendar/event/tags/list',
+    removeTag: 'http://0.0.0.0:3000/api/calendar/event/tags/delete',
   };
 
   const event1 = {
@@ -175,6 +179,7 @@ describe('Events Suite', function EventsSuite() {
             '2016-12-05T21:00:00+00:00',
             '2016-12-12T21:00:00+00:00',
           ],
+          owner: 'admin@foo.com',
         }, event1);
 
         delete precalculatedTime.tz;
@@ -219,6 +224,7 @@ describe('Events Suite', function EventsSuite() {
             '2016-12-05T21:00:00+00:00',
             '2016-12-12T21:00:00+00:00',
           ],
+          owner: 'admin@foo.com',
         }, event1);
 
         delete precalculatedTime.tz;
@@ -312,12 +318,95 @@ describe('Events Suite', function EventsSuite() {
             '2016-10-17T21:00:00+00:00',
             '2016-11-21T21:00:00+00:00',
           ],
+          owner: 'admin@foo.com',
         }, event1, update, { title: 'nom-nom' });
 
         delete precalculatedTime.tz;
 
         assert.deepEqual(body.data[0].attributes, precalculatedTime);
 
+        return null;
+      })
+    ));
+  });
+
+  describe('tags', () => {
+    const tag = {
+      id: 'awesome-tag',
+      eng: 'The Best of Tags',
+      cover: 'https://example.com/top.jpeg',
+      icon: 'http://bad.icon/top.png',
+      priority: 10,
+    };
+
+    const startTime = now().toISOString();
+    const endTime = now().add(2, 'month').toISOString();
+
+    it('allows to create a tag', () => (
+      request(uri.createTag, {
+        tag,
+        token: this.adminToken,
+      })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, {
+          id: tag.id,
+          type: 'tag',
+          attributes: omit(tag, 'id'),
+        });
+        return null;
+      })
+    ));
+
+    it('returns all tags', () => (
+      request(uri.listTags, { active: false, startTime, endTime })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, [{
+          id: tag.id,
+          type: 'tag',
+          attributes: omit(tag, 'id'),
+        }]);
+        return null;
+      })
+    ));
+
+    it('returns active tags', () => (
+      request(uri.listTags, { active: true, startTime, endTime })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, []);
+        return null;
+      })
+    ));
+
+    it('adds event with a tag', () => (
+      request(uri.update, { id: 1, token: this.adminToken, event: { tags: [tag.id] } })
+      .then(() => request(uri.listTags, { active: true, startTime, endTime }))
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, [{
+          id: tag.id,
+          type: 'tag',
+          attributes: omit(tag, 'id'),
+        }]);
+        return null;
+      })
+    ));
+
+    it('removes tag', () => (
+      request(uri.removeTag, { token: this.adminToken, tag: tag.id })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        return null;
+      })
+    ));
+
+    it('returns active tags after removal', () => (
+      request(uri.listTags, { active: true, startTime, endTime })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, []);
         return null;
       })
     ));

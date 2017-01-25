@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "token",
+    "tag"
+  ],
+  "properties": {
+    "token": {
+      "type": "string"
+    },
+    "tag": {
+      "$ref": "common.json#/definitions/tag/properties/id"
+    }
+  }
+}
