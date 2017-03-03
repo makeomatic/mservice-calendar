@@ -142,8 +142,11 @@ class Storage {
   }
 
   getEvents(filter: Object) {
-    const { owner, tags, hosts, startTime, endTime } = filter;
+    const { owner, tags, hosts } = filter;
     const knex = this.client;
+
+    const startTime = new Date(filter.startTime).toISOString();
+    const endTime = new Date(filter.endTime).toISOString();
 
     this.log.debug('querying %s between %s and %s', owner, startTime, endTime);
 
