@@ -15,7 +15,8 @@
         "id",
         "eng",
         "icon",
-        "cover"
+        "cover",
+        "section"
       ],
       "$ref": "common.json#/definitions/tag"
     }
