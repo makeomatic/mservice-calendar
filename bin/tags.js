@@ -103,7 +103,7 @@ function prepareCURL(argv) {
     ));
 
     console.log('\n\nCURL requests:\n----\n');
-    console.log(curlRequests.join('\n'));
+    console.log(curlRequests.join('\n\n'));
     console.log('\n----\n\n');
 
     return curlRequests;

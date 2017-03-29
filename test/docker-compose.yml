@@ -3,7 +3,7 @@ version: '2'
 services:
   tester:
     container_name: tester
-    image: makeomatic/node:7.7.4-tester
+    image: makeomatic/node:7.8.0-tester
     depends_on:
       - postgres
       - rabbitmq
