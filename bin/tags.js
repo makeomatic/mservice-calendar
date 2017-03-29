@@ -9,7 +9,6 @@ const request = require('request-promise');
 const hashFiles = require('hash-files');
 const assert = require('assert');
 const flatten = require('lodash/flatten');
-const startCase = require('lodash/startCase');
 const mime = require('mime-types');
 
 // base64 1x1 px transparent png
@@ -51,6 +50,7 @@ const getUploadTagsList = (argv) => {
 
       // at this point we check that png exist
       const files = glob.sync('*.{png,jpg}', { cwd: folder });
+      const id = genre.replace(/[^a-zA-Z0-9]/g, '-');
 
       files.forEach((asset) => {
         const ext = path.extname(asset);
@@ -58,7 +58,7 @@ const getUploadTagsList = (argv) => {
         const assetPath = path.resolve(folder, asset);
         const hash = hashFiles.sync({ files: [assetPath], algorithm: 'sha256' });
         assetsPaths[assetName] = path.resolve(folder, asset);
-        assetsLinks[assetName] = `https://${argv.cdn}/${argv.prefix}/${genre}/${assetName}.${hash.slice(0, 8)}${ext}`;
+        assetsLinks[assetName] = `https://${argv.cdn}/${argv.prefix}/${id}/${assetName}.${hash.slice(0, 8)}${ext}`;
       });
 
       // verify that cover exists
@@ -75,8 +75,14 @@ const getUploadTagsList = (argv) => {
           section,
           cover: assetsLinks.cover,
           icon: assetsLinks.icon,
-          id: genre,
-          eng: startCase(genre),
+          id,
+          eng: genre
+            .replace(/-/g, ' ')
+            .replace(/_/g, '/')
+            .replace(/\^/g, '&')
+            .replace(/\w+/g, (match) => {
+              return match[0].toUpperCase() + match.slice(1);
+            }),
         },
       };
     });
