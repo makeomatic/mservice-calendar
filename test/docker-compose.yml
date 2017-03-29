@@ -3,7 +3,7 @@ version: '2'
 services:
   tester:
     container_name: tester
-    image: makeomatic/node:7.6.0-tester
+    image: makeomatic/node:7.8.0-tester
     depends_on:
       - postgres
       - rabbitmq
@@ -25,7 +25,7 @@ services:
     links:
       - redis
       - rabbitmq
-    image: makeomatic/ms-users:7.5.0
+    image: makeomatic/ms-users:7.7.2
     hostname: ms-users
     container_name: ms-users
     volumes:

@@ -11,7 +11,7 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "start": "node ./bin/mservice.js | bunyan -o short",
     "pretest": "npm run compile",
-    "test": "npm run lint && ./test/docker.sh"
+    "test": "rimraf ./coverage && npm run lint && ./test/docker.sh"
   },
   "repository": {
     "type": "git",
@@ -28,51 +28,79 @@
   },
   "homepage": "https://github.com/makeomatic/mservice-calendar#readme",
   "dependencies": {
-    "bluebird": "^3.4.6",
-    "bunyan": "^1.8.5",
+    "bluebird": "^3.5.0",
+    "bunyan": "^1.8.9",
     "common-errors": "^1.0.0",
     "hapi": "^16.0.1",
     "is": "^3.2.1",
-    "knex": "^0.12.7",
+    "knex": "^0.12.9",
     "lodash": "^4.17.2",
-    "moment": "^2.17.1",
+    "moment": "^2.18.1",
     "moment-timezone": "^0.5.10",
     "ms-amqp-transport": "^7.1.0",
-    "ms-conf": "^2.3.0",
+    "ms-conf": "^3.1.2",
     "ms-validation": "^3.0.0",
-    "mservice": "^5.1.0",
-    "pg": "^6.1.0",
-    "rrule": "^2.1.0",
+    "mservice": "^6.0.1",
+    "pg": "^6.1.5",
+    "rrule": "^2.2.0",
     "stdout-stream": "^1.4.0",
     "uid2": "0.0.3",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "yargs": "^7.0.2"
   },
   "devDependencies": {
+    "@google-cloud/storage": "^0.8.0",
     "apidoc": "^0.17.5",
     "apidoc-plugin-schema": "^0.1.0",
-    "babel-cli": "^6.23.0",
-    "babel-core": "^6.23.1",
-    "babel-eslint": "^7.1.1",
+    "babel-cli": "^6.24.0",
+    "babel-core": "^6.24.0",
+    "babel-eslint": "^7.2.1",
+    "babel-plugin-istanbul": "^4.1.1",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-plugin-transform-strict-mode": "^6.22.0",
-    "babel-register": "^6.23.0",
-    "codecov": "^1.0.1",
+    "babel-register": "^6.24.0",
+    "codecov": "^2.1.0",
+    "cross-env": "^3.2.4",
     "dotenv": "^4.0.0",
-    "eslint": "^3.16.1",
-    "eslint-config-airbnb-base": "^11.1.0",
+    "eslint": "^3.18.0",
     "eslint-config-makeomatic": "^1.0.1",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-promise": "^3.5.0",
-    "isparta": "^4.0.0",
-    "istanbul": "=0.4.4",
-    "json": "^9.0.5",
+    "hash-files": "^1.1.1",
+    "json": "^9.0.6",
     "latest-version-cli": "^1.1.0",
+    "mime-types": "^2.1.15",
     "mocha": "^3.2.0",
-    "request": "^2.79.0",
-    "request-promise": "^4.1.1",
+    "nyc": "^10.2.0",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.0",
+    "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2"
   },
   "release": {
     "verifyConditions": []
+  },
+  "engines": {
+    "node": ">= 7.6.0",
+    "npm": ">= 3.0.0"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "src/**/*.spec.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "sourceMap": false,
+    "instrument": false,
+    "cache": true,
+    "reporter": [
+      "lcov",
+      "json",
+      "text-summary"
+    ]
   }
 }
