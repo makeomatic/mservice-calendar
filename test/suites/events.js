@@ -333,6 +333,7 @@ describe('Events Suite', function EventsSuite() {
   describe('tags', () => {
     const tag = {
       id: 'awesome-tag',
+      section: 'music',
       eng: 'The Best of Tags',
       cover: 'https://example.com/top.jpeg',
       icon: 'http://bad.icon/top.png',
