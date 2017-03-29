@@ -28,6 +28,7 @@ fi
 
 # bring compose up
 $COMPOSE up -d
+sleep 5
 
 set -eu
 
