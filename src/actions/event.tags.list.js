@@ -33,6 +33,7 @@ function EventTagsList({ method, params, query }) {
       'icon',
       'cover',
       'priority',
+      'section',
     ])
     .from(EVENT_TAGS_TABLE);
 
