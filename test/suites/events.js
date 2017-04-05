@@ -31,6 +31,7 @@ describe('Events Suite', function EventsSuite() {
     subscribe: 'http://0.0.0.0:3000/api/calendar/event/subscribe',
     build: 'http://0.0.0.0:3000/api/calendar/build',
     createTag: 'http://0.0.0.0:3000/api/calendar/event/tags/create',
+    updateTag: 'http://0.0.0.0:3000/api/calendar/event/tags/update',
     listTags: 'http://0.0.0.0:3000/api/calendar/event/tags/list',
     removeTag: 'http://0.0.0.0:3000/api/calendar/event/tags/delete',
   };
@@ -340,6 +341,15 @@ describe('Events Suite', function EventsSuite() {
       priority: 10,
     };
 
+    const updatedTag = {
+      id: 'awesome-tag',
+      section: 'music',
+      eng: 'Not the Best of Tags',
+      cover: 'https://example.com/bottom.jpeg',
+      icon: 'http://bad.icon/bottom.png',
+      priority: 10,
+    };
+
     const startTime = now().toISOString();
     const endTime = now().add(2, 'month').toISOString();
 
@@ -391,6 +401,22 @@ describe('Events Suite', function EventsSuite() {
           type: 'tag',
           attributes: omit(tag, 'id'),
         }]);
+        return null;
+      })
+    ));
+
+    it('allows to update a tag', () => (
+      request(uri.updateTag, {
+        tag: updatedTag,
+        token: this.adminToken,
+      })
+      .then((response) => {
+        assert.equal(response.statusCode, 200);
+        assert.deepEqual(response.body.data, {
+          id: updatedTag.id,
+          type: 'tag',
+          attributes: omit(updatedTag, 'id'),
+        });
         return null;
       })
     ));
