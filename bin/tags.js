@@ -98,11 +98,11 @@ function prepareCURL(argv) {
     // now generate CURL requests
     const curlRequests = genres.map(({ tag }) => (
       `curl -X POST -H 'Content-Type: application/vnd.api+json' \\
-        '${argv.endpoint}/calendar/event/tags/create' \\
-        -d '${JSON.stringify({ token, tag })}'`
+        '${argv.endpoint}/calendar/event/tags/${argv.action}' \\
+        -d '${JSON.stringify({ token, tag: argv.action === 'delete' ? tag.id : tag })}'`
     ));
 
-    console.log('\n\nCURL requests:\n----\n');
+    console.log(`\n\nCURL ${argv.action} requests:\n----\n`);
     console.log(curlRequests.join('\n\n'));
     console.log('\n----\n\n');
 
@@ -169,6 +169,12 @@ require('yargs')
     command: 'upload',
     desc: 'upload assets based on dir structure',
     handler: uploadFiles,
+  })
+  .option('action', {
+    alias: 'a',
+    describe: 'action to perform',
+    choices: ['create', 'update', 'delete'],
+    default: 'create',
   })
   .option('username', {
     alias: 'u',
