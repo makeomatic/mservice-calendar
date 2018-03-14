@@ -36,6 +36,10 @@ function EventListAction({ params }) {
     // resolve event list aliases
     .bind(userService)
     .then(userService.getAliasForEvents)
+    // hook
+    .bind(this)
+    .tap(data => this.hook.call(this, 'event:list:post', data, params))
+    // response
     .then(response);
 }
 

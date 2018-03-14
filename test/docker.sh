@@ -6,7 +6,7 @@ PATH=$PATH:$DIR/.bin/
 
 # coverage & test files
 COVER="$BIN/cross-env NODE_ENV=test $BIN/nyc"
-TESTS=${TESTS:-test/suites/*.js}
+TESTS=${TESTS:-test/suites/*.js test/suites/**/*.js}
 
 # compose stuff
 COMPOSE=$(which docker-compose)
@@ -28,7 +28,7 @@ fi
 
 # bring compose up
 $COMPOSE up -d
-sleep 5
+sleep 30
 
 set -eu
 

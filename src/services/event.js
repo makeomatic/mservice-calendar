@@ -115,6 +115,10 @@ class Event {
   * subscribe(data) {
     return yield this.storage.subscribeToEvent(data);
   }
+
+  * listTags(data) {
+    return yield this.storage.getEventTags(data);
+  }
 }
 
 module.exports = Event;

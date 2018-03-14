@@ -7,7 +7,7 @@ const { omit } = require('lodash');
 describe('Events Suite', function EventsSuite() {
   const Calendar = require('../../src');
   const calendar = new Calendar(global.SERVICES);
-  const now = () => moment(new Date(2016, 10, 16));
+  const now = () => moment(new Date(2018, 10, 16));
 
   before('start service', () => calendar.connect());
   after('stop service', () => calendar.close());
@@ -41,7 +41,7 @@ describe('Events Suite', function EventsSuite() {
     description: 'One time event',
     tags: ['music', 'news', 'jazz'],
     hosts: ['dj maverick', 'dj simons'],
-    rrule: 'FREQ=WEEKLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
+    rrule: 'FREQ=WEEKLY;DTSTART=20180920T210000Z;UNTIL=20181221T090000Z;WKST=SU;BYDAY=MO',
     duration: 30,
     tz: 'America/Chicago',
   };
@@ -49,7 +49,7 @@ describe('Events Suite', function EventsSuite() {
   const event2 = {
     title: 'Test event 2 - start right after 1',
     description: 'recurring',
-    rrule: 'FREQ=WEEKLY;DTSTART=20160920T213000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=MO',
+    rrule: 'FREQ=WEEKLY;DTSTART=20180920T213000Z;UNTIL=20181221T090000Z;WKST=SU;BYDAY=MO',
     duration: 30,
     tz: 'Europe/Moscow',
   };
@@ -58,7 +58,7 @@ describe('Events Suite', function EventsSuite() {
     // In-case of MONTHLY we MUST specify day of which week we want to use. Every 3rd monday
     // otherwise monthly would only mean this day
     // We can also remove BYDAY and it will be months starting from DTSTART and + month
-    rrule: 'FREQ=MONTHLY;DTSTART=20160920T210000Z;UNTIL=20161221T090000Z;WKST=SU;BYDAY=3MO',
+    rrule: 'FREQ=MONTHLY;DTSTART=20180920T210000Z;UNTIL=20181221T090000Z;WKST=SU;BYDAY=3MO', 
     duration: 15,
   };
 
@@ -119,8 +119,8 @@ describe('Events Suite', function EventsSuite() {
         assert.equal(body.error, 'Bad Request');
         assert.equal(
           body.message,
-          'You want to create an event starting at Mon, Sep 26, 2016 4:00 PM, ' +
-          'but it overlaps with another one at Mon, Sep 26, 2016 4:00 PM'
+          'You want to create an event starting at Mon, Sep 24, 2018 4:00 PM, ' +
+          'but it overlaps with another one at Mon, Sep 24, 2018 4:00 PM'
         );
         assert.equal(body.name, 'ValidationError');
 
@@ -170,15 +170,14 @@ describe('Events Suite', function EventsSuite() {
 
         const precalculatedTime = Object.assign({
           start_time: [
-            '2016-10-17T21:00:00+00:00',
-            '2016-10-24T21:00:00+00:00',
-            '2016-10-31T21:00:00+00:00',
-            '2016-11-07T21:00:00+00:00',
-            '2016-11-14T21:00:00+00:00',
-            '2016-11-21T21:00:00+00:00',
-            '2016-11-28T21:00:00+00:00',
-            '2016-12-05T21:00:00+00:00',
-            '2016-12-12T21:00:00+00:00',
+            '2018-10-22T21:00:00+00:00',
+            '2018-10-29T21:00:00+00:00',
+            '2018-11-05T21:00:00+00:00',
+            '2018-11-12T21:00:00+00:00',
+            '2018-11-19T21:00:00+00:00',
+            '2018-11-26T21:00:00+00:00',
+            '2018-12-03T21:00:00+00:00',
+            '2018-12-10T21:00:00+00:00',
           ],
           owner: 'admin@foo.com',
         }, event1);
@@ -215,15 +214,14 @@ describe('Events Suite', function EventsSuite() {
 
         const precalculatedTime = Object.assign({
           start_time: [
-            '2016-10-17T21:00:00+00:00',
-            '2016-10-24T21:00:00+00:00',
-            '2016-10-31T21:00:00+00:00',
-            '2016-11-07T21:00:00+00:00',
-            '2016-11-14T21:00:00+00:00',
-            '2016-11-21T21:00:00+00:00',
-            '2016-11-28T21:00:00+00:00',
-            '2016-12-05T21:00:00+00:00',
-            '2016-12-12T21:00:00+00:00',
+            '2018-10-22T21:00:00+00:00',
+            '2018-10-29T21:00:00+00:00',
+            '2018-11-05T21:00:00+00:00',
+            '2018-11-12T21:00:00+00:00',
+            '2018-11-19T21:00:00+00:00',
+            '2018-11-26T21:00:00+00:00',
+            '2018-12-03T21:00:00+00:00',
+            '2018-12-10T21:00:00+00:00',
           ],
           owner: 'admin@foo.com',
         }, event1);
@@ -316,8 +314,7 @@ describe('Events Suite', function EventsSuite() {
 
         const precalculatedTime = Object.assign({
           start_time: [
-            '2016-10-17T21:00:00+00:00',
-            '2016-11-21T21:00:00+00:00',
+            '2018-11-19T21:00:00+00:00',
           ],
           owner: 'admin@foo.com',
         }, event1, update, { title: 'nom-nom' });

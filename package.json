@@ -77,6 +77,9 @@
     "rimraf": "^2.6.1",
     "semantic-release": "^6.3.2"
   },
+  "resolutions": {
+    "boom": "4.2.0"
+  },
   "release": {
     "verifyConditions": []
   },

@@ -4,7 +4,7 @@
  */
 
 const Promise = require('bluebird');
-const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS } = require('../constants');
+const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS, EVENT_TAGS_TABLE } = require('../constants');
 const { pick } = require('lodash');
 const moment = require('moment-timezone');
 const Errors = require('common-errors');
@@ -209,6 +209,42 @@ class Storage {
       const sql = `update ${EVENT_TABLE} set notifications = notifications || ?, subscribers = subscribers || ? where id = ?`;
       query = this.client.raw(sql, [subscriber, subscriber, data.event]);
     }
+    return query;
+  }
+
+  getEventTags(filter) {
+    const knex = this.client;
+    const isActive = filter.active;
+    const startTime = filter.startTime || new Date().toISOString();
+    const endTime = filter.endTime || moment().add(2, 'month').toISOString();
+
+    // TODO: assert that we do not request something 1 year from now
+    // 1. select available tags
+    // 2. filter by any events with the same active tag and return response
+    const query = knex
+      .select([
+        `${EVENT_TAGS_TABLE}.id as id`,
+        'eng',
+        'icon',
+        'cover',
+        'priority',
+        'section',
+      ])
+      .from(EVENT_TAGS_TABLE);
+
+    if (isActive) {
+      query
+        .joinRaw(`INNER JOIN ${EVENT_TABLE} on ${EVENT_TABLE}.tags @> ARRAY[${EVENT_TAGS_TABLE}.id]`)
+        .joinRaw(`INNER JOIN ${EVENT_SPANS_TABLE} on (`
+          + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
+          + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
+          + ')'
+        )
+        .groupByRaw(`${EVENT_TAGS_TABLE}.id`);
+    }
+
+    query.orderBy('priority', 'desc');
+
     return query;
   }
 }
