@@ -25,7 +25,7 @@ services:
     links:
       - redis
       - rabbitmq
-    image: makeomatic/ms-users:7.7.2
+    image: makeomatic/ms-users:9.3.0-8.0.4
     hostname: ms-users
     container_name: ms-users
     volumes:

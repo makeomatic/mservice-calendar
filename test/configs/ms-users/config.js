@@ -31,6 +31,7 @@ module.exports = {
         firstName: 'Admin',
         lastName: 'Admin',
         roles: ['admin'],
+        stationGroup: 'group01',
       },
     },
     {
@@ -40,6 +41,7 @@ module.exports = {
         firstName: 'SecondAdmin',
         lastName: 'Admin',
         roles: ['admin'],
+        stationGroup: 'group02',
       },
     },
     {

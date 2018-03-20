@@ -2,6 +2,7 @@ const LightUserModel = require('../models/lightUserModel');
 const Promise = require('bluebird');
 const passThrough = require('lodash/identity');
 const partial = require('lodash/partial');
+const isArray = require('lodash/isArray');
 const { NotFoundError, HttpStatusError } = require('common-errors');
 
 function makeUser(userData) {
@@ -12,6 +13,13 @@ function makeUser(userData) {
     name,
     userData.roles
   );
+}
+
+function makeUsers(data) {
+  if (isArray(data)) {
+    return data.map(makeUser);
+  }
+  return makeUser(data);
 }
 
 function CheckNotFoundError(error) {
@@ -93,8 +101,13 @@ class UserService {
 
     return this.amqp
       .publishAndWait(route, message, { timeout, cache: 60000 })
-      .get(audience)
-      .then(doNotWrapInUser ? passThrough : makeUser)
+      .then((data) => {
+        if (isArray(data)) {
+          return data.map(item => item[audience]);
+        }
+        return data[audience];
+      })
+      .then(doNotWrapInUser ? passThrough : makeUsers)
       .catch(HttpStatusError, CheckNotFoundError, () => {
         throw new NotFoundError(`User #${username} not found`);
       });
