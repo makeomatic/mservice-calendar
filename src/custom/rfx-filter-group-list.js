@@ -1,9 +1,10 @@
 const uniq = require('lodash/uniq');
 const remove = require('lodash/remove');
 const findIndex = require('lodash/findIndex');
+const get = require('lodash/get');
 
 function filterUsers(users, stationGroup) {
-  return users.filter(user => user.stationGroup === stationGroup);
+  return users.filter(user => get(user, 'stationGroup', 'radiofx') === stationGroup);
 }
 
 function filterOwners(owners) {
@@ -22,7 +23,12 @@ function filterOwners(owners) {
 
 function filterEvents(owners) {
   const events = this;
-  remove(events, event => findIndex(owners, { username: event.owner }) === -1);
+  remove(events, event => findIndex(owners, (user) => {
+    if (user.alias) {
+      return user.alias === event.owner;
+    }
+    return user.username === event.owner;
+  }) === -1);
   return events;
 }
 
@@ -32,7 +38,7 @@ module.exports = function filterGroup(events, params) {
     const userService = this.services.user;
     const owners = uniq(events.map(event => event.owner));
     return userService
-      .getById(owners, ['username', 'stationGroup'], true)
+      .getById(owners, ['alias', 'username', 'stationGroup'], true)
       // Filter owners by group
       .bind([userService, params])
       .then(filterOwners)
