@@ -34,9 +34,9 @@ function filterEvents(owners) {
 
 module.exports = function filterGroup(events, params) {
   const { meta } = params;
-  if (meta && (meta.stationGroup || meta.userId)) {
+  const owners = uniq(events.map(event => event.owner));
+  if (meta && (meta.stationGroup || meta.userId) && owners.length > 0) {
     const userService = this.services.user;
-    const owners = uniq(events.map(event => event.owner));
     return userService
       .getById(owners, ['alias', 'username', 'stationGroup'], true)
       // Filter owners by group
