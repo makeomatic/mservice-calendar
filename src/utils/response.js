@@ -3,6 +3,7 @@ const is = require('is');
 
 const TYPE_EVENT = 'event';
 const TYPE_TAG = 'tag';
+const TYPE_SUB = 'eventSub';
 
 function transform(object, type) {
   const response = {
@@ -57,4 +58,5 @@ module.exports = {
   transform,
   TYPE_EVENT,
   TYPE_TAG,
+  TYPE_SUB,
 };

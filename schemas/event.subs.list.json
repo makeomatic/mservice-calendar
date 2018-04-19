@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "required": [
+    "filter",
+    "token"
+  ],
+  "properties": {
+    "filter": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "token": {
+      "$ref": "common.json#/definitions/token"
+    }
+  },
+  "additionalProperties": false
+}
