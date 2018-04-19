@@ -4,7 +4,13 @@
  */
 
 const Promise = require('bluebird');
-const { EVENT_TABLE, EVENT_SPANS_TABLE, EVENT_FIELDS, EVENT_TAGS_TABLE } = require('../constants');
+const {
+  EVENT_TABLE,
+  EVENT_SPANS_TABLE,
+  EVENT_FIELDS,
+  EVENT_TAGS_TABLE,
+  EVENT_SUBS_TABLE,
+} = require('../constants');
 const { pick } = require('lodash');
 const moment = require('moment-timezone');
 const Errors = require('common-errors');
@@ -199,16 +205,53 @@ class Storage {
     return knex(EVENT_TABLE).where({ id, owner }).del();
   }
 
-  subscribeToEvent(data: Object) {
-    let query;
-    const subscriber = `{${data.subscriber}}`;
-    if (!data.notify) {
-      const sql = `update ${EVENT_TABLE} set subscribers = subscribers || ? where id = ?`;
-      query = this.client.raw(sql, [subscriber, data.event]);
-    } else {
-      const sql = `update ${EVENT_TABLE} set notifications = notifications || ?, subscribers = subscribers || ? where id = ?`;
-      query = this.client.raw(sql, [subscriber, subscriber, data.event]);
+  subscribeEvent(id, username) {
+    const knex = this.client;
+    return knex(EVENT_SUBS_TABLE)
+      .insert({ event_id: id, username })
+      .return(id)
+      .catch({ routine: '_bt_check_unique' }, (err) => {
+        throw new Errors.NotPermittedError('user has already subscribed to the event', err);
+      })
+      .catch({ constraint: 'events_subs_event_id_foreign' }, (err) => {
+        throw new Errors.NotFoundError('event not found', err);
+      });
+  }
+
+  unsubscribeEvent(id, username) {
+    const knex = this.client;
+    return knex(EVENT_SUBS_TABLE)
+      .where({ event_id: id, username })
+      .del()
+      .then((count) => {
+        if (count === 0) {
+          throw new Errors.NotPermittedError('user is not subscribed to this event');
+        }
+        return id;
+      });
+  }
+
+  listEventSubs(filters) {
+    const { id, username } = filters;
+    const knex = this.client;
+    const query = knex
+      .select([
+        'event_id as id',
+        'username',
+        'created_at as createdAt',
+      ])
+      .from(EVENT_SUBS_TABLE);
+
+    if (id) {
+      query.where('event_id', id);
     }
+
+    if (username) {
+      query.where('username', username);
+    }
+
+    query.orderBy('event_id', 'asc');
+
     return query;
   }
 
