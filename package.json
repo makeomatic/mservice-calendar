@@ -31,6 +31,7 @@
     "bluebird": "^3.5.0",
     "bunyan": "^1.8.9",
     "common-errors": "^1.0.0",
+    "firebase-admin": "^5.12.0",
     "hapi": "^16.0.1",
     "is": "^3.2.1",
     "knex": "^0.12.9",
