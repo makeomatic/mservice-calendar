@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "token"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "token": {
+      "$ref": "common.json#/definitions/token"
+    }
+  },
+  "additionalProperties": true
+}
