@@ -111,9 +111,16 @@ class Event {
     return yield this.storage.getEvent(id);
   }
 
-  // TODO: not working, implement it later
-  * subscribe(data) {
-    return yield this.storage.subscribeToEvent(data);
+  * subscribe(id, username) {
+    return yield this.storage.subscribeEvent(id, username);
+  }
+
+  * unsubscribe(id, username) {
+    return yield this.storage.unsubscribeEvent(id, username);
+  }
+
+  * listSubs(data) {
+    return yield this.storage.listEventSubs(data);
   }
 
   * listTags(data) {
