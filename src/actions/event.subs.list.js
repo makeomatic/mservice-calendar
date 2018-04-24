@@ -1,5 +1,4 @@
 const partial = require('lodash/partial');
-const isAdmin = require('../middlewares/isAdmin');
 const { TYPE_SUB, collectionResponse } = require('../utils/response');
 
 // cached response
@@ -20,7 +19,6 @@ function EventSubsList({ params }) {
     .then(response);
 }
 
-EventSubsList.allowed = isAdmin;
 EventSubsList.auth = 'token';
 EventSubsList.schema = 'event.subs.list';
 EventSubsList.transports = ['http', 'amqp'];

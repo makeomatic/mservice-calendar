@@ -187,20 +187,6 @@ describe('Events Subscription Suite', function suite() {
       })
     });
 
-    it('should return an error invalid role', () => {
-      request(uri.subsList, {
-        token: this.firstUserToken,
-        filter: {
-          id: secondEventId,
-        },
-      }).then(({ body, statusCode }) => {
-        assert.equal(statusCode, 403);
-        assert.equal(body.statusCode, 403);
-        assert.equal(body.error, 'Forbidden');
-        assert.equal(body.name, 'NotPermittedError');
-      })
-    });
-
     it('should return a list of subscriptions filtering by event', () => (
       request(uri.subsList, {
         token: this.adminToken,

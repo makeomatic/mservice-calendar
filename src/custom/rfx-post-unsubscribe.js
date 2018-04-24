@@ -4,9 +4,9 @@ module.exports = function postSubscribe(params, user) {
   const { fcmToken } = params;
   if (fcmToken) {
     const { config } = this;
-    const { firebase: { adminCert } } = config;
+    const { firebase: { adminCert, messaging: { topic: { eventPrefix } } } } = config;
     const { id } = params;
-    const topic = `calendar_evt_${id}`;
+    const topic = `${eventPrefix}${id}`;
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(adminCert),
