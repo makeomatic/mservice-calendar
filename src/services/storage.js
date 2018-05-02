@@ -236,21 +236,25 @@ class Storage {
     const knex = this.client;
     const query = knex
       .select([
-        'event_id as id',
-        'username',
-        'created_at as createdAt',
+        `${EVENT_TABLE}.title`,
+        `${EVENT_TABLE}.description`,
+        `${EVENT_TABLE}.owner`,
+        `${EVENT_SUBS_TABLE}.event_id as id`,
+        `${EVENT_SUBS_TABLE}.username`,
+        `${EVENT_SUBS_TABLE}.created_at as createdAt`,
       ])
-      .from(EVENT_SUBS_TABLE);
+      .from(EVENT_SUBS_TABLE)
+      .join(EVENT_TABLE, `${EVENT_SUBS_TABLE}.event_id`, '=', `${EVENT_TABLE}.id`);
 
     if (id) {
-      query.where('event_id', id);
+      query.where(`${EVENT_SUBS_TABLE}.event_id`, id);
     }
 
     if (username) {
-      query.where('username', username);
+      query.where(`${EVENT_SUBS_TABLE}.username`, username);
     }
 
-    query.orderBy('event_id', 'asc');
+    query.orderBy(`${EVENT_SUBS_TABLE}.event_id`, 'asc');
 
     return query;
   }
