@@ -1,6 +1,5 @@
 const { TYPE_EVENT, modelResponse } = require('../utils/response');
 const partial = require('lodash/partial');
-const isAdmin = require('../middlewares/isAdmin');
 
 // cached response
 const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
@@ -12,16 +11,15 @@ const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
  * @apiGroup Event
  * @apiSchema {jsonschema=../../schemas/event.single.json} apiParam
  */
-function EventGet({ params, auth }) {
+function EventGet({ params }) {
   return this
     .services
     .event
-    .get(params.id, auth.credentials.user.id)
+    .get(params.id)
     .then(response);
 }
 
 EventGet.auth = 'token';
-EventGet.allowed = isAdmin;
 EventGet.schema = 'event.single';
 EventGet.transports = ['http', 'amqp'];
 

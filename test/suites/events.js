@@ -8,6 +8,7 @@ describe('Events Suite', function EventsSuite() {
   const Calendar = require('../../src');
   const calendar = new Calendar(global.SERVICES);
   const now = () => moment(new Date(2018, 10, 16));
+  let _event1;
 
   before('start service', () => calendar.connect());
   after('stop service', () => calendar.close());
@@ -105,6 +106,8 @@ describe('Events Suite', function EventsSuite() {
         const comparison = Object.assign({ owner: 'admin@foo.com' }, event1);
         delete comparison.tz;
         assert.deepEqual(body.data.attributes, comparison);
+
+        _event1 = body.data;
 
         return null;
       })
@@ -236,6 +239,21 @@ describe('Events Suite', function EventsSuite() {
 
         return null;
       })
+    ));
+  });
+
+  describe('single event', () => {
+    it('should return a single event', () => (
+      request(uri.single, { id: _event1.id, token: this.userToken })
+        .then((response) => {
+          const { body, statusCode } = response;
+
+          assert.equal(statusCode, 200);
+          assert.equal(body.data.id, _event1.id);
+          assert.equal(body.data.type, 'event');
+          assert.ok(body.data.attributes);
+          assert.equal(body.data.attributes.title, _event1.attributes.title);
+        })
     ));
   });
 

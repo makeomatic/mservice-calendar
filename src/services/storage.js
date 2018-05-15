@@ -137,8 +137,8 @@ class Storage {
     ));
   }
 
-  getEvent(id: number, owner: string) {
-    return this.client(EVENT_TABLE).where({ id, owner }).then((results) => {
+  getEvent(id: number) {
+    return this.client(EVENT_TABLE).where({ id }).then((results) => {
       if (results.length > 0) {
         return results[0];
       }
@@ -239,6 +239,10 @@ class Storage {
         `${EVENT_TABLE}.title`,
         `${EVENT_TABLE}.description`,
         `${EVENT_TABLE}.owner`,
+        `${EVENT_TABLE}.rrule`,
+        `${EVENT_TABLE}.duration`,
+        `${EVENT_TABLE}.tags`,
+        `${EVENT_TABLE}.hosts`,
         `${EVENT_SUBS_TABLE}.event_id as id`,
         `${EVENT_SUBS_TABLE}.username`,
         `${EVENT_SUBS_TABLE}.created_at as createdAt`,
