@@ -208,6 +208,10 @@ describe('Events Subscription Suite', function suite() {
         assert.ok(uniqByEventId[0].attributes.username);
         assert.ok(uniqByEventId[0].attributes.title);
         assert.ok(uniqByEventId[0].attributes.description);
+        assert.ok(uniqByEventId[0].attributes.rrule);
+        assert.ok(uniqByEventId[0].attributes.tags);
+        assert.ok(uniqByEventId[0].attributes.hosts);
+        assert.ok(uniqByEventId[0].attributes.duration);
         assert.ok(uniqByEventId[0].attributes.owner);
       })
     ));
@@ -233,6 +237,10 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(uniqByUsername[0].attributes.username, 'user@foo.com');
         assert.ok(uniqByUsername[0].attributes.title);
         assert.ok(uniqByUsername[0].attributes.description);
+        assert.ok(uniqByUsername[0].attributes.rrule);
+        assert.ok(uniqByUsername[0].attributes.tags);
+        assert.ok(uniqByUsername[0].attributes.hosts);
+        assert.ok(uniqByUsername[0].attributes.duration);
         assert.ok(uniqByUsername[0].attributes.owner);
       })
     ));
@@ -256,6 +264,10 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.data[0].attributes.username, 'user@foo.com');
         assert.ok(body.data[0].attributes.title);
         assert.ok(body.data[0].attributes.description);
+        assert.ok(body.data[0].attributes.rrule);
+        assert.ok(body.data[0].attributes.tags);
+        assert.ok(body.data[0].attributes.hosts);
+        assert.ok(body.data[0].attributes.duration);
         assert.ok(body.data[0].attributes.owner);
       })
     ));
