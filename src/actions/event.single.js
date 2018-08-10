@@ -16,6 +16,10 @@ function EventGet({ params }) {
     .services
     .event
     .get(params.id)
+    // hook
+    .bind(this)
+    .tap(data => this.hook.call(this, 'event:single:post', data, params))
+    // response
     .then(response);
 }
 
