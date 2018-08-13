@@ -232,10 +232,17 @@ class Storage {
   }
 
   listEventSubs(filters) {
+    let startTime = filters.startTime || moment().utc();
+    let endTime = filters.endTime || moment().utc().add(1, 'years');
+
+    startTime = startTime.toISOString();
+    endTime = endTime.toISOString();
+
     const { id, username } = filters;
     const knex = this.client;
     const query = knex
       .select([
+        `${EVENT_TABLE}.id`,
         `${EVENT_TABLE}.title`,
         `${EVENT_TABLE}.description`,
         `${EVENT_TABLE}.owner`,
@@ -243,12 +250,16 @@ class Storage {
         `${EVENT_TABLE}.duration`,
         `${EVENT_TABLE}.tags`,
         `${EVENT_TABLE}.hosts`,
-        `${EVENT_SUBS_TABLE}.event_id as id`,
+        // `${EVENT_SUBS_TABLE}.event_id as id`,
         `${EVENT_SUBS_TABLE}.username`,
         `${EVENT_SUBS_TABLE}.created_at as createdAt`,
       ])
       .from(EVENT_SUBS_TABLE)
-      .join(EVENT_TABLE, `${EVENT_SUBS_TABLE}.event_id`, '=', `${EVENT_TABLE}.id`);
+      .join(EVENT_TABLE, `${EVENT_SUBS_TABLE}.event_id`, '=', `${EVENT_TABLE}.id`)
+      .joinRaw('INNER JOIN (' +
+        `SELECT event_id FROM ${EVENT_SPANS_TABLE} ` +
+        `WHERE period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}') ` +
+        `GROUP BY event_id) ${EVENT_SPANS_TABLE} on (${EVENT_SPANS_TABLE}.event_id = ${EVENT_TABLE}.id)`);
 
     if (id) {
       query.where(`${EVENT_SUBS_TABLE}.event_id`, id);
@@ -258,7 +269,8 @@ class Storage {
       query.where(`${EVENT_SUBS_TABLE}.username`, username);
     }
 
-    query.orderBy(`${EVENT_SUBS_TABLE}.event_id`, 'asc');
+    query
+      .orderBy(`${EVENT_SUBS_TABLE}.event_id`, 'asc');
 
     return query;
   }
