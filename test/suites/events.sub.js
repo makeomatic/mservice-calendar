@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const assert = require('assert');
+const moment = require('moment');
 const uniqBy = require('lodash/uniqBy');
 const request = require('../helpers/request');
 const { login } = require('../helpers/users');
@@ -35,7 +36,7 @@ describe('Events Subscription Suite', function suite() {
         description: 'It\'s an amazing show powered by Felipex.',
         tags: ['music', 'country'],
         hosts: ['dj felipe'],
-        rrule: 'FREQ=WEEKLY;DTSTART=20180920T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=MO',
+        rrule: 'FREQ=WEEKLY;DTSTART=20180720T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=MO',
         duration: 30,
       },
     })
@@ -136,7 +137,7 @@ describe('Events Subscription Suite', function suite() {
           description: 'Such a big show!',
           tags: ['music', 'pop'],
           hosts: ['dj malboro'],
-          rrule: 'FREQ=WEEKLY;DTSTART=20180920T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=TU',
+          rrule: 'FREQ=WEEKLY;DTSTART=20180720T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=TU',
           duration: 60,
         },
       })
@@ -251,6 +252,50 @@ describe('Events Subscription Suite', function suite() {
         filter: {
           id: this.firstEventId,
           username: 'user@foo.com',
+        },
+      }).then(({ body, statusCode }) => {
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.count, 1);
+        assert.equal(body.data.length, 1);
+
+        assert.equal(body.data[0].id, this.firstEventId);
+        assert.equal(body.data[0].type, 'eventSub');
+        assert.ok(body.data[0].attributes);
+        assert.equal(body.data[0].attributes.username, 'user@foo.com');
+        assert.ok(body.data[0].attributes.title);
+        assert.ok(body.data[0].attributes.description);
+        assert.ok(body.data[0].attributes.rrule);
+        assert.ok(body.data[0].attributes.tags);
+        assert.ok(body.data[0].attributes.hosts);
+        assert.ok(body.data[0].attributes.duration);
+        assert.ok(body.data[0].attributes.owner);
+      })
+    ));
+
+    it('should not return subscriptions if event is out of range', () =>
+      request(uri.subsList, {
+        token: this.adminToken,
+        filter: {
+          id: this.firstEventId,
+          startTime: moment.utc('20180720T090000Z').subtract(1, 'years').toDate(),
+          endTime: moment.utc('20180720T090000Z').subtract(6, 'months').toDate(),
+        },
+      }).then(({ body, statusCode }) => {
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.count, 0);
+        assert.equal(body.data.length, 0);
+      })
+    );
+
+    it('should return a list of subscriptions filtering by event and date', () => (
+      request(uri.subsList, {
+        token: this.adminToken,
+        filter: {
+          id: this.firstEventId,
+          startTime: moment.utc().toDate(),
+          endTime: moment.utc().add(1, 'month').toDate(),
         },
       }).then(({ body, statusCode }) => {
         assert.equal(statusCode, 200);
