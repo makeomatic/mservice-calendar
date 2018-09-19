@@ -4,6 +4,8 @@
 
 # NOTICE: PGSQL extensions required
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/makeomatic/mservice-calendar.svg)](https://greenkeeper.io/)
+
 Ensure to enable this: `CREATE EXTENSION btree_gist;`
 Ensure to enable this: `CREATE EXTENSION btree_gin;`
 
