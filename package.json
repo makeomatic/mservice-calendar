@@ -76,7 +76,8 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.0",
     "rimraf": "^2.6.1",
-    "semantic-release": "^6.3.2"
+    "semantic-release": "^6.3.2",
+    "sinon": "^6.3.4"
   },
   "resolutions": {
     "boom": "4.2.0"
