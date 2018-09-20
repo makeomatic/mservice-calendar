@@ -2,6 +2,8 @@ const uniq = require('lodash/uniq');
 const remove = require('lodash/remove');
 const findIndex = require('lodash/findIndex');
 const get = require('lodash/get');
+const assign = require('lodash/assign');
+const Promise = require('bluebird');
 
 function filterUsers(users, stationGroup) {
   return users.filter(user => get(user, 'stationGroup', 'radiofx') === stationGroup);
@@ -32,11 +34,23 @@ function filterEvents(owners) {
   return events;
 }
 
+function countSubs(events) {
+  const [eventService, params] = this;
+  return Promise.map(events, event => eventService.countSubs({
+    startTime: params.startTime,
+    endTime: params.endTime,
+    id: event.id,
+  }, { concurrency: 10 })
+  .then(query => assign(event, { countSubs: query.total })));
+}
+
 module.exports = function filterGroup(events, params) {
   const { meta } = params;
   const owners = uniq(events.map(event => event.owner));
   if (meta && (meta.stationGroup || meta.userId) && owners.length > 0) {
     const userService = this.services.user;
+    const eventService = this.services.event;
+
     return userService
       .getById(owners, ['alias', 'username', 'stationGroup'], true)
       // Filter owners by group
@@ -44,7 +58,10 @@ module.exports = function filterGroup(events, params) {
       .then(filterOwners)
       // filter events
       .bind(events)
-      .then(filterEvents);
+      .then(filterEvents)
+      // count subs
+      .bind([eventService, params])
+      .then(countSubs);
   }
   return events;
 };

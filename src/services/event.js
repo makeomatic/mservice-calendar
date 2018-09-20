@@ -123,6 +123,10 @@ class Event {
     return yield this.storage.listEventSubs(data);
   }
 
+  * countSubs(data) {
+    return yield this.storage.countEventSubs(data);
+  }
+
   * listTags(data) {
     return yield this.storage.getEventTags(data);
   }

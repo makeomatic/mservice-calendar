@@ -274,6 +274,38 @@ class Storage {
     return query;
   }
 
+  countEventSubs(filters) {
+    let startTime = filters.startTime ? moment.utc(filters.startTime) : moment.utc();
+    let endTime = filters.endTime ? moment.utc(filters.endTime) : moment.utc().add(1, 'years');
+
+    startTime = startTime.toISOString();
+    endTime = endTime.toISOString();
+
+    const { id, username } = filters;
+    const knex = this.client;
+    const query = knex
+      .count('id as total')
+      .from(EVENT_SUBS_TABLE)
+      .join(EVENT_TABLE, `${EVENT_SUBS_TABLE}.event_id`, '=', `${EVENT_TABLE}.id`)
+      .joinRaw('INNER JOIN (' +
+        `SELECT event_id FROM ${EVENT_SPANS_TABLE} ` +
+        `WHERE period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}') ` +
+        `GROUP BY event_id) ${EVENT_SPANS_TABLE} on (${EVENT_SPANS_TABLE}.event_id = ${EVENT_TABLE}.id)`);
+
+    if (id) {
+      query.where(`${EVENT_SUBS_TABLE}.event_id`, id);
+    }
+
+    if (username) {
+      query.where(`${EVENT_SUBS_TABLE}.username`, username);
+    }
+
+    query
+      .orderBy(`${EVENT_SUBS_TABLE}.event_id`, 'asc');
+
+    return query;
+  }
+
   getEventTags(filter) {
     const knex = this.client;
     const isActive = filter.active;
