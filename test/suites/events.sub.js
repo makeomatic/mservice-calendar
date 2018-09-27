@@ -316,6 +316,41 @@ describe('Events Subscription Suite', function suite() {
         assert.ok(body.data[0].attributes.owner);
       })
     ));
+
+    it('should return a list of subscriptions filtering by events id', () => (
+      request(uri.subsList, {
+        token: this.adminToken,
+        filter: {
+          ids: [this.firstEventId, secondEventId],
+        },
+      }).then(({ body, statusCode }) => {
+        assert.equal(statusCode, 200);
+        assert.ok(body.meta);
+        assert.equal(body.meta.count, 3);
+        assert.equal(body.data.length, 3);
+
+        for (let i = 0; i < body.meta.count; i++) {
+          const {id, type, attributes } = body.data[i];
+
+          assert.equal(type, 'eventSub');
+          assert.ok(attributes);
+          assert.equal(attributes.owner, 'admin@foo.com');
+          assert.ok(attributes.title);
+          assert.ok(attributes.description);
+          assert.ok(attributes.rrule);
+          assert.ok(attributes.tags);
+          assert.ok(attributes.hosts);
+          assert.ok(attributes.duration);
+          
+          if (id === this.firstEventId) {
+            assert.equal(attributes.username, 'user@foo.com');
+          } else if (id === secondEventId) {
+            assert(attributes.username === 'user@foo.com' || attributes.username === 'second.user@foo.com');
+          }
+        }
+      })
+    ));
+
   });
 
   describe('Unsubscribe', () => {
