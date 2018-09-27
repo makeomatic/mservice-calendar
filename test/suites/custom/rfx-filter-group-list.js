@@ -1,12 +1,8 @@
 const assert = require('assert');
 const moment = require('moment-timezone');
 const extend = require('lodash/extend');
-const sinon = require('sinon');
 const request = require('../../helpers/request');
 const { login } = require('../../helpers/users');
-const EventService = require('../../../src/services/event');
-
-sinon.stub(EventService.prototype, 'countSubs').resolves({ total: 2 });
 
 describe('rfx-filter-group-list hook test suite', function suite() {
   const Calendar = require('../../../src');
@@ -104,31 +100,6 @@ describe('rfx-filter-group-list hook test suite', function suite() {
 
         return null;
       }));
-
-      it('count events subscriptions by stationGroup', () => {
-        return request(uri.list, {
-          startTime: now().subtract(1, 'months').toISOString(),
-          endTime: now().add(1, 'months').toISOString(),
-          hosts: ['dj felipe'],
-          meta: {
-            stationGroup: 'group01',
-          },
-        })
-        .then((response) => {
-          const { body, statusCode } = response;
-
-          assert.equal(statusCode, 200);
-          assert.ok(body.meta);
-          assert.equal(body.meta.count, 1);
-          assert.equal(body.data.length, 1);
-          assert.equal(body.data[0].type, 'event');
-          assert.ok(body.data[0].attributes);
-          assert.ok(body.data[0].attributes.title, 'Test event 1');
-          assert.equal(body.data[0].attributes.countSubs, 2);
-
-          return null;
-        });
-      });
   });
 
   describe('event/tags/list/', () => {

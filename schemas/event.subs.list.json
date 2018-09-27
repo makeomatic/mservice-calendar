@@ -13,6 +13,13 @@
         "id": {
           "type": "integer"
         },
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minLength": 1
+          }
+        },
         "username": {
           "type": "string"
         },
