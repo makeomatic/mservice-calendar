@@ -24,8 +24,6 @@ services:
       - redis
       - rabbitmq
     image: makeomatic/ms-users:9.3.0-8.0.4
-    hostname: ms-users
-    container_name: ms-users
     volumes:
       - ${PWD}/test/configs:/src/configs:ro
     environment:
@@ -36,8 +34,7 @@ services:
       MS_USERS__INIT_ADMIN_ACCOUNTS_DELAY: '1'
 
   rabbitmq:
-    image: makeomatic/rabbitmq:3.7.8-alpine
-    hostname: rabbitmq
+    image: rabbitmq:3.7.8-alpine
 
   postgres:
     image: postgres:10-alpine
