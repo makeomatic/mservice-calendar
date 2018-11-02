@@ -11,7 +11,7 @@
     "semantic-release": "semantic-release",
     "start": "mfleet",
     "pretest": "yarn compile",
-    "test": "rimraf ./coverage && yarn lint && ./test/docker.sh"
+    "test": "yarn lint && mdep test run"
   },
   "repository": {
     "type": "git",
