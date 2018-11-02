@@ -1,10 +1,10 @@
-const LightUserModel = require('../models/lightUserModel');
 const Promise = require('bluebird');
 const passThrough = require('lodash/identity');
 const partial = require('lodash/partial');
-const isArray = require('lodash/isArray');
 const { NotFoundError, HttpStatusError } = require('common-errors');
+const LightUserModel = require('../models/lightUserModel');
 
+const { isArray } = Array;
 function makeUser(userData) {
   const name = `${userData.firstName} ${userData.lastName}`;
 
@@ -73,7 +73,7 @@ class UserService {
   }
 
   static remapUsernames(mappedUsernames) {
-    const usernamesPool = this.usernamesPool;
+    const { usernamesPool } = this;
     this.uniqueUsernames.forEach(UserService.enrichPool, { usernamesPool, mappedUsernames });
     this.events.forEach(UserService.setOwner, usernamesPool);
     return this.events;

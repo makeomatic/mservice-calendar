@@ -2,8 +2,7 @@ version: '2'
 
 services:
   tester:
-    container_name: tester
-    image: makeomatic/node:7.8.0-tester
+    image: makeomatic/node:10.12.0-tester
     depends_on:
       - postgres
       - rabbitmq
@@ -18,8 +17,7 @@ services:
 
   redis:
     hostname: redis
-    container_name: redis
-    image: makeomatic/redis-cluster:3.2.8
+    image: makeomatic/redis-cluster:3.2.9
 
   ms-users:
     links:
@@ -38,19 +36,11 @@ services:
       MS_USERS__INIT_ADMIN_ACCOUNTS_DELAY: '1'
 
   rabbitmq:
-    expose:
-      - "5672"
-    image: makeomatic/rabbitmq:3.6.6
-    container_name: rabbitmq
+    image: makeomatic/rabbitmq:3.7.8-alpine
     hostname: rabbitmq
-    volumes:
-      - ./configs/rabbitmq/rabbitmq.config:/usr/lib/rabbitmq/etc/rabbitmq/rabbitmq.config
 
   postgres:
-    expose:
-      - "5432"
-    image: postgres:9.5.5-alpine
+    image: postgres:10-alpine
     volumes:
       - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
-    container_name: pg
     hostname: pg

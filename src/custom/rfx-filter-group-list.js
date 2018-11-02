@@ -12,12 +12,15 @@ function filterOwners(owners) {
   const { meta } = params;
   if (meta && meta.stationGroup) {
     return filterUsers(owners, meta.stationGroup);
-  } else if (meta && meta.userId) {
+  }
+
+  if (meta && meta.userId) {
     return userService
       .getById(meta.userId, ['stationGroup'], true)
       .get('stationGroup')
       .then(stationGroup => filterUsers(owners, stationGroup));
   }
+
   return owners;
 }
 

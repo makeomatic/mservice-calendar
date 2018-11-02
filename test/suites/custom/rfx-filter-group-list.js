@@ -54,16 +54,15 @@ describe('rfx-filter-group-list hook test suite', function suite() {
     },
   }));
 
-  describe('event/list/', () => {  
-    it('list events by stationGroup', () =>
-      request(uri.list, {
-        startTime: now().subtract(1, 'months').toISOString(),
-        endTime: now().add(1, 'months').toISOString(),
-        hosts: ['dj felipe'],
-        meta: {
-          stationGroup: 'group01',
-        },
-      })
+  describe('event/list/', () => {
+    it('list events by stationGroup', () => request(uri.list, {
+      startTime: now().subtract(1, 'months').toISOString(),
+      endTime: now().add(1, 'months').toISOString(),
+      hosts: ['dj felipe'],
+      meta: {
+        stationGroup: 'group01',
+      },
+    })
       .then((response) => {
         const { body, statusCode } = response;
 
@@ -78,15 +77,14 @@ describe('rfx-filter-group-list hook test suite', function suite() {
         return null;
       }));
 
-    it('list events by userId', () =>
-      request(uri.list, {
-        startTime: now().subtract(1, 'months').toISOString(),
-        endTime: now().add(1, 'months').toISOString(),
-        hosts: ['dj malboro'],
-        meta: {
-          userId: 'second.admin@foo.com',
-        },
-      })
+    it('list events by userId', () => request(uri.list, {
+      startTime: now().subtract(1, 'months').toISOString(),
+      endTime: now().add(1, 'months').toISOString(),
+      hosts: ['dj malboro'],
+      meta: {
+        userId: 'second.admin@foo.com',
+      },
+    })
       .then((response) => {
         const { body, statusCode } = response;
 
@@ -103,6 +101,6 @@ describe('rfx-filter-group-list hook test suite', function suite() {
   });
 
   describe('event/tags/list/', () => {
-    
+
   });
 });

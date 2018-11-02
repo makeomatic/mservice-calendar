@@ -1,8 +1,8 @@
 const assert = require('assert');
 const moment = require('moment-timezone');
+const { omit } = require('lodash');
 const request = require('../helpers/request');
 const { login } = require('../helpers/users');
-const { omit } = require('lodash');
 
 describe('Events Suite', function EventsSuite() {
   const Calendar = require('../../src');
@@ -59,7 +59,7 @@ describe('Events Suite', function EventsSuite() {
     // In-case of MONTHLY we MUST specify day of which week we want to use. Every 3rd monday
     // otherwise monthly would only mean this day
     // We can also remove BYDAY and it will be months starting from DTSTART and + month
-    rrule: 'FREQ=MONTHLY;DTSTART=20180920T210000Z;UNTIL=20181221T090000Z;WKST=SU;BYDAY=3MO', 
+    rrule: 'FREQ=MONTHLY;DTSTART=20180920T210000Z;UNTIL=20181221T090000Z;WKST=SU;BYDAY=3MO',
     duration: 15,
   };
 
@@ -80,73 +80,73 @@ describe('Events Suite', function EventsSuite() {
 
     it('should not be able to create event with user token', () => (
       request(uri.create, { token: this.userToken, event: event1 })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(body.message, 'An attempt was made to perform an operation that is not permitted: '
+          assert.equal(body.message, 'An attempt was made to perform an operation that is not permitted: '
           + 'HttpStatusError: Access to this action is denied');
-        assert.equal(statusCode, 403);
-        assert.equal(body.statusCode, 403);
-        assert.equal(body.error, 'Forbidden');
-        assert.equal(body.name, 'NotPermittedError');
+          assert.equal(statusCode, 403);
+          assert.equal(body.statusCode, 403);
+          assert.equal(body.error, 'Forbidden');
+          assert.equal(body.name, 'NotPermittedError');
 
-        return null;
-      })
+          return null;
+        })
     ));
 
     it('Create recurring event successfully', () => (
       request(uri.create, { token: this.adminToken, event: Object.assign({}, event1) })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200, JSON.stringify(body));
-        assert.ok(body.data);
-        assert.ok(body.data.id);
+          assert.equal(statusCode, 200, JSON.stringify(body));
+          assert.ok(body.data);
+          assert.ok(body.data.id);
 
-        const comparison = Object.assign({ owner: 'admin@foo.com' }, event1);
-        delete comparison.tz;
-        assert.deepEqual(body.data.attributes, comparison);
+          const comparison = Object.assign({ owner: 'admin@foo.com' }, event1);
+          delete comparison.tz;
+          assert.deepEqual(body.data.attributes, comparison);
 
-        _event1 = body.data;
+          _event1 = body.data;
 
-        return null;
-      })
+          return null;
+        })
     ));
 
     it('Rejects to create overlapping recurring event', () => (
       request(uri.create, { token: this.adminToken, event: Object.assign({}, event1) })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.notEqual(statusCode, 200);
-        assert.equal(body.error, 'Bad Request');
-        assert.equal(
-          body.message,
-          'You want to create an event starting at Mon, Sep 24, 2018 4:00 PM, ' +
-          'but it overlaps with another one at Mon, Sep 24, 2018 4:00 PM'
-        );
-        assert.equal(body.name, 'ValidationError');
+          assert.notEqual(statusCode, 200);
+          assert.equal(body.error, 'Bad Request');
+          assert.equal(
+            body.message,
+            'You want to create an event starting at Mon, Sep 24, 2018 4:00 PM, '
+          + 'but it overlaps with another one at Mon, Sep 24, 2018 4:00 PM'
+          );
+          assert.equal(body.name, 'ValidationError');
 
-        return null;
-      })
+          return null;
+        })
     ));
 
     it('Allows to create event right after the first one', () => (
       request(uri.create, { token: this.adminToken, event: Object.assign({}, event2) })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200);
-        assert.ok(body.data);
-        assert.ok(body.data.id);
+          assert.equal(statusCode, 200);
+          assert.ok(body.data);
+          assert.ok(body.data.id);
 
-        const comparison = Object.assign({ owner: 'admin@foo.com', tags: [], hosts: [] }, event2);
-        delete comparison.tz;
+          const comparison = Object.assign({ owner: 'admin@foo.com', tags: [], hosts: [] }, event2);
+          delete comparison.tz;
 
-        assert.deepEqual(body.data.attributes, comparison);
+          assert.deepEqual(body.data.attributes, comparison);
 
-        return null;
-      })
+          return null;
+        })
     ));
   });
 
@@ -159,42 +159,42 @@ describe('Events Suite', function EventsSuite() {
         startTime: now().subtract(1, 'months').toISOString(),
         endTime: now().add(1, 'months').toISOString(),
       })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200);
-        assert.ok(body.meta);
-        assert.equal(body.meta.cursor, 1);
-        assert.equal(body.meta.count, 1);
-        assert.equal(body.data.length, 1);
-        assert.equal(body.data[0].id, 1);
-        assert.equal(body.data[0].type, 'event');
-        assert.ok(body.data[0].attributes);
+          assert.equal(statusCode, 200);
+          assert.ok(body.meta);
+          assert.equal(body.meta.cursor, 1);
+          assert.equal(body.meta.count, 1);
+          assert.equal(body.data.length, 1);
+          assert.equal(body.data[0].id, 1);
+          assert.equal(body.data[0].type, 'event');
+          assert.ok(body.data[0].attributes);
 
-        const precalculatedTime = Object.assign({
-          start_time: [
-            '2018-10-22T21:00:00+00:00',
-            '2018-10-29T21:00:00+00:00',
-            '2018-11-05T21:00:00+00:00',
-            '2018-11-12T21:00:00+00:00',
-            '2018-11-19T21:00:00+00:00',
-            '2018-11-26T21:00:00+00:00',
-            '2018-12-03T21:00:00+00:00',
-            '2018-12-10T21:00:00+00:00',
-          ],
-          owner: 'admin@foo.com',
-        }, event1);
+          const precalculatedTime = Object.assign({
+            start_time: [
+              '2018-10-22T21:00:00+00:00',
+              '2018-10-29T21:00:00+00:00',
+              '2018-11-05T21:00:00+00:00',
+              '2018-11-12T21:00:00+00:00',
+              '2018-11-19T21:00:00+00:00',
+              '2018-11-26T21:00:00+00:00',
+              '2018-12-03T21:00:00+00:00',
+              '2018-12-10T21:00:00+00:00',
+            ],
+            owner: 'admin@foo.com',
+          }, event1);
 
-        delete precalculatedTime.tz;
+          delete precalculatedTime.tz;
 
-        assert.deepEqual(
-          body.data[0].attributes,
-          precalculatedTime,
-          JSON.stringify({ start: body.data[0].attributes.start_time, end: precalculatedTime.start_time })
-        );
+          assert.deepEqual(
+            body.data[0].attributes,
+            precalculatedTime,
+            JSON.stringify({ start: body.data[0].attributes.start_time, end: precalculatedTime.start_time })
+          );
 
-        return null;
-      })
+          return null;
+        })
     ));
 
     it('should return a sample list of events for supplied tags', () => (
@@ -203,42 +203,42 @@ describe('Events Suite', function EventsSuite() {
         startTime: now().subtract(1, 'months').toISOString(),
         endTime: now().add(1, 'months').toISOString(),
       })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200);
-        assert.ok(body.meta);
-        assert.equal(body.meta.cursor, 1);
-        assert.equal(body.meta.count, 1);
-        assert.equal(body.data.length, 1);
-        assert.equal(body.data[0].id, 1);
-        assert.equal(body.data[0].type, 'event');
-        assert.ok(body.data[0].attributes);
+          assert.equal(statusCode, 200);
+          assert.ok(body.meta);
+          assert.equal(body.meta.cursor, 1);
+          assert.equal(body.meta.count, 1);
+          assert.equal(body.data.length, 1);
+          assert.equal(body.data[0].id, 1);
+          assert.equal(body.data[0].type, 'event');
+          assert.ok(body.data[0].attributes);
 
-        const precalculatedTime = Object.assign({
-          start_time: [
-            '2018-10-22T21:00:00+00:00',
-            '2018-10-29T21:00:00+00:00',
-            '2018-11-05T21:00:00+00:00',
-            '2018-11-12T21:00:00+00:00',
-            '2018-11-19T21:00:00+00:00',
-            '2018-11-26T21:00:00+00:00',
-            '2018-12-03T21:00:00+00:00',
-            '2018-12-10T21:00:00+00:00',
-          ],
-          owner: 'admin@foo.com',
-        }, event1);
+          const precalculatedTime = Object.assign({
+            start_time: [
+              '2018-10-22T21:00:00+00:00',
+              '2018-10-29T21:00:00+00:00',
+              '2018-11-05T21:00:00+00:00',
+              '2018-11-12T21:00:00+00:00',
+              '2018-11-19T21:00:00+00:00',
+              '2018-11-26T21:00:00+00:00',
+              '2018-12-03T21:00:00+00:00',
+              '2018-12-10T21:00:00+00:00',
+            ],
+            owner: 'admin@foo.com',
+          }, event1);
 
-        delete precalculatedTime.tz;
+          delete precalculatedTime.tz;
 
-        assert.deepEqual(
-          body.data[0].attributes,
-          precalculatedTime,
-          JSON.stringify({ start: body.data[0].attributes.start_time, end: precalculatedTime.start_time })
-        );
+          assert.deepEqual(
+            body.data[0].attributes,
+            precalculatedTime,
+            JSON.stringify({ start: body.data[0].attributes.start_time, end: precalculatedTime.start_time })
+          );
 
-        return null;
-      })
+          return null;
+        })
     ));
   });
 
@@ -260,32 +260,32 @@ describe('Events Suite', function EventsSuite() {
   describe('update event', () => {
     it('should fail to update event when we supply rrule, but not duration', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: { rrule: update.rrule } })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.ok(/data\.event should have property duration when property rrule is present/.test(body.message), JSON.stringify(body));
-        assert.equal(statusCode, 400);
-        assert.equal(body.statusCode, 400);
-        assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
+          assert.ok(/data\.event should have property duration when property rrule is present/.test(body.message), JSON.stringify(body));
+          assert.equal(statusCode, 400);
+          assert.equal(body.statusCode, 400);
+          assert.equal(body.error, 'Bad Request');
+          assert.equal(body.name, 'ValidationError');
 
-        return null;
-      })
+          return null;
+        })
     ));
 
     it('should fail to update event when we supply duration, but not rrule', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: { duration: 60 } })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.ok(/data\.event should have property rrule when property duration is present/.test(body.message), JSON.stringify(body));
-        assert.equal(statusCode, 400);
-        assert.equal(body.statusCode, 400);
-        assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
+          assert.ok(/data\.event should have property rrule when property duration is present/.test(body.message), JSON.stringify(body));
+          assert.equal(statusCode, 400);
+          assert.equal(body.statusCode, 400);
+          assert.equal(body.error, 'Bad Request');
+          assert.equal(body.name, 'ValidationError');
 
-        return null;
-      })
+          return null;
+        })
     ));
 
     it.skip('should fail to update when owner does not match', () => {
@@ -294,20 +294,20 @@ describe('Events Suite', function EventsSuite() {
 
     it('should update only meta information when no rrule or duration present', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: { title: 'nom-nom' } })
-      .then((response) => {
-        const { statusCode } = response;
-        assert.equal(statusCode, 200);
-        return null;
-      })
+        .then((response) => {
+          const { statusCode } = response;
+          assert.equal(statusCode, 200);
+          return null;
+        })
     ));
 
     it('should update event periods when rrule & duration is present', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: update })
-      .then((response) => {
-        const { statusCode } = response;
-        assert.equal(statusCode, 200);
-        return null;
-      })
+        .then((response) => {
+          const { statusCode } = response;
+          assert.equal(statusCode, 200);
+          return null;
+        })
     ));
 
     it('should return a sample list of updated events', () => (
@@ -318,31 +318,31 @@ describe('Events Suite', function EventsSuite() {
         startTime: now().subtract(1, 'months').toISOString(),
         endTime: now().add(1, 'months').toISOString(),
       })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200);
-        assert.ok(body.meta);
-        assert.equal(body.meta.cursor, 1);
-        assert.equal(body.meta.count, 1);
-        assert.equal(body.data.length, 1);
-        assert.equal(body.data[0].id, 1);
-        assert.equal(body.data[0].type, 'event');
-        assert.ok(body.data[0].attributes);
+          assert.equal(statusCode, 200);
+          assert.ok(body.meta);
+          assert.equal(body.meta.cursor, 1);
+          assert.equal(body.meta.count, 1);
+          assert.equal(body.data.length, 1);
+          assert.equal(body.data[0].id, 1);
+          assert.equal(body.data[0].type, 'event');
+          assert.ok(body.data[0].attributes);
 
-        const precalculatedTime = Object.assign({
-          start_time: [
-            '2018-11-19T21:00:00+00:00',
-          ],
-          owner: 'admin@foo.com',
-        }, event1, update, { title: 'nom-nom' });
+          const precalculatedTime = Object.assign({
+            start_time: [
+              '2018-11-19T21:00:00+00:00',
+            ],
+            owner: 'admin@foo.com',
+          }, event1, update, { title: 'nom-nom' });
 
-        delete precalculatedTime.tz;
+          delete precalculatedTime.tz;
 
-        assert.deepEqual(body.data[0].attributes, precalculatedTime);
+          assert.deepEqual(body.data[0].attributes, precalculatedTime);
 
-        return null;
-      })
+          return null;
+        })
     ));
   });
 
@@ -373,51 +373,51 @@ describe('Events Suite', function EventsSuite() {
         tag,
         token: this.adminToken,
       })
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        assert.deepEqual(response.body.data, {
-          id: tag.id,
-          type: 'tag',
-          attributes: omit(tag, 'id'),
-        });
-        return null;
-      })
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          assert.deepEqual(response.body.data, {
+            id: tag.id,
+            type: 'tag',
+            attributes: omit(tag, 'id'),
+          });
+          return null;
+        })
     ));
 
     it('returns all tags', () => (
       request(uri.listTags, { active: false, startTime, endTime })
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        assert.deepEqual(response.body.data, [{
-          id: tag.id,
-          type: 'tag',
-          attributes: omit(tag, 'id'),
-        }]);
-        return null;
-      })
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          assert.deepEqual(response.body.data, [{
+            id: tag.id,
+            type: 'tag',
+            attributes: omit(tag, 'id'),
+          }]);
+          return null;
+        })
     ));
 
     it('returns active tags', () => (
       request(uri.listTags, { active: true, startTime, endTime })
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        assert.deepEqual(response.body.data, []);
-        return null;
-      })
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          assert.deepEqual(response.body.data, []);
+          return null;
+        })
     ));
 
     it('adds event with a tag', () => (
       request(uri.update, { id: 1, token: this.adminToken, event: { tags: [tag.id] } })
-      .then(() => request(uri.listTags, { active: true, startTime, endTime }))
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        assert.deepEqual(response.body.data, [{
-          id: tag.id,
-          type: 'tag',
-          attributes: omit(tag, 'id'),
-        }]);
-        return null;
-      })
+        .then(() => request(uri.listTags, { active: true, startTime, endTime }))
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          assert.deepEqual(response.body.data, [{
+            id: tag.id,
+            type: 'tag',
+            attributes: omit(tag, 'id'),
+          }]);
+          return null;
+        })
     ));
 
     it('allows to update a tag', () => (
@@ -425,32 +425,32 @@ describe('Events Suite', function EventsSuite() {
         tag: updatedTag,
         token: this.adminToken,
       })
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        assert.deepEqual(response.body.data, {
-          id: updatedTag.id,
-          type: 'tag',
-          attributes: omit(updatedTag, 'id'),
-        });
-        return null;
-      })
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          assert.deepEqual(response.body.data, {
+            id: updatedTag.id,
+            type: 'tag',
+            attributes: omit(updatedTag, 'id'),
+          });
+          return null;
+        })
     ));
 
     it('removes tag', () => (
       request(uri.removeTag, { token: this.adminToken, tag: tag.id })
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        return null;
-      })
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          return null;
+        })
     ));
 
     it('returns active tags after removal', () => (
       request(uri.listTags, { active: true, startTime, endTime })
-      .then((response) => {
-        assert.equal(response.statusCode, 200);
-        assert.deepEqual(response.body.data, []);
-        return null;
-      })
+        .then((response) => {
+          assert.equal(response.statusCode, 200);
+          assert.deepEqual(response.body.data, []);
+          return null;
+        })
     ));
   });
 
@@ -458,11 +458,11 @@ describe('Events Suite', function EventsSuite() {
   describe('remove event', () => {
     it('allows owner to remove event', () => (
       request(uri.remove, { id: 1, token: this.adminToken })
-      .then((response) => {
-        const { statusCode } = response;
-        assert.equal(statusCode, 200);
-        return null;
-      })
+        .then((response) => {
+          const { statusCode } = response;
+          assert.equal(statusCode, 200);
+          return null;
+        })
     ));
 
     it('should return a sample list of updated events', () => (
@@ -471,25 +471,25 @@ describe('Events Suite', function EventsSuite() {
         startTime: now().subtract(1, 'year').toISOString(),
         endTime: now().add(1, 'year').toISOString(),
       })
-      .then((response) => {
-        const { body, statusCode } = response;
+        .then((response) => {
+          const { body, statusCode } = response;
 
-        assert.equal(statusCode, 200);
-        assert.ok(body.meta);
-        assert.equal(body.meta.count, 1);
-        assert.equal(body.data.length, 1);
+          assert.equal(statusCode, 200);
+          assert.ok(body.meta);
+          assert.equal(body.meta.count, 1);
+          assert.equal(body.data.length, 1);
 
-        assert.equal(statusCode, 200);
-        assert.ok(body.meta);
-        assert.equal(body.meta.cursor, 3);
-        assert.equal(body.meta.count, 1);
-        assert.equal(body.data.length, 1);
-        assert.equal(body.data[0].id, 3);
-        assert.equal(body.data[0].type, 'event');
-        assert.ok(body.data[0].attributes);
+          assert.equal(statusCode, 200);
+          assert.ok(body.meta);
+          assert.equal(body.meta.cursor, 3);
+          assert.equal(body.meta.count, 1);
+          assert.equal(body.data.length, 1);
+          assert.equal(body.data[0].id, 3);
+          assert.equal(body.data[0].type, 'event');
+          assert.ok(body.data[0].attributes);
 
-        return null;
-      })
+          return null;
+        })
     ));
   });
 });

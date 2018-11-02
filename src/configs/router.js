@@ -1,6 +1,6 @@
-const { ActionTransport, routerExtension } = require('mservice');
-const auth = require('../auth/token');
+const { ActionTransport, routerExtension } = require('@microfleet/core');
 const path = require('path');
+const auth = require('../auth/token');
 
 module.exports = {
   router: {

@@ -13,8 +13,8 @@ RUN \
     openssl \
     findutils \
     postgresql-dev \
-  && npm install --production \
-  && npm dedupe \
+  && yarn --frozen-lockfile --production \
+  && yarn cache clean \
   && apk del \
     .buildDeps \
     wget \

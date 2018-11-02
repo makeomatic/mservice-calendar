@@ -2,9 +2,9 @@
  * calendar.js
  * @flow
  */
-const _ = require('lodash');
+const merge = require('lodash/merge');
 const { globFiles } = require('ms-conf/lib/load-config');
-const MService = require('mservice');
+const { Microfleet, ConnectorsTypes } = require('@microfleet/core');
 const path = require('path');
 
 const StorageService = require('./services/storage');
@@ -13,14 +13,14 @@ const UserService = require('./services/user');
 
 const defaultConfig = globFiles(path.resolve(__dirname, 'configs'));
 
-class Calendar extends MService {
+class Calendar extends Microfleet {
   /**
    * @param config
    */
   constructor(config: ?Object = {}) {
-    super(_.merge({}, defaultConfig, config));
-    this.addConnector(MService.ConnectorsTypes.migration, () => this.migrate('knex'));
-    this.services = {};
+    super(merge({}, defaultConfig, config));
+    this.addConnector(ConnectorsTypes.migration, () => this.migrate('knex'));
+    this.services = Object.create(null);
     this.on('plugin:connect:amqp', (amqp) => {
       this.services.user = new UserService(this.config.users, amqp);
     });
