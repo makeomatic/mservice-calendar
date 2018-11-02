@@ -1,8 +1,7 @@
-const Promise = require('bluebird');
 const { EVENT_TABLE } = require('../constants');
 
 // ensures that all events
-exports.up = (knex) => (
+exports.up = knex => (
   knex.schema.table(EVENT_TABLE, (table) => {
     table.string('tz');
   })
