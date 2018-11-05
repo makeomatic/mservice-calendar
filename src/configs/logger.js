@@ -1,5 +1,4 @@
-module.exports = {
-  logger: {
-    defaultLogger: true,
-  },
+exports.logger = {
+  defaultLogger: true,
+  debug: true,
 };

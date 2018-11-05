@@ -1,4 +1,8 @@
 module.exports = {
+  logger: {
+    defaultLogger: true,
+    debug: true,
+  },
   amqp: {
     transport: {
       connection: {

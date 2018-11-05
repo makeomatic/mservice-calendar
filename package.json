@@ -1,6 +1,7 @@
 {
   "name": "mservice-calendar",
   "description": "Calendar microservice",
+  "version": "0.0.0-development",
   "main": "./lib/index.js",
   "scripts": {
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
@@ -55,7 +56,6 @@
     "@babel/core": "^7.0.0",
     "@babel/plugin-transform-flow-strip-types": "^7.0.0",
     "@babel/plugin-transform-strict-mode": "^7.0.0",
-    "@babel/preset-flow": "^7.0.0",
     "@babel/register": "^7.0.0",
     "@google-cloud/storage": "^0.8.0",
     "@makeomatic/deploy": "^8.2.3",
@@ -86,25 +86,6 @@
   "engines": {
     "node": ">= 8.9.0",
     "npm": ">= 4.0.0"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.js"
-    ],
-    "exclude": [
-      "src/**/*.spec.js"
-    ],
-    "require": [
-      "@babel/register"
-    ],
-    "sourceMap": false,
-    "instrument": false,
-    "cache": true,
-    "reporter": [
-      "lcov",
-      "json",
-      "text-summary"
-    ]
   },
   "husky": {
     "hooks": {

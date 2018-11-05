@@ -26,8 +26,9 @@
           ]
         },
         "dependencies": {
-          "rrule": [ "duration" ],
-          "duration": [ "rrule" ]
+          "rrule": [ "duration", "tz" ],
+          "duration": [ "rrule", "tz" ],
+          "tz": [ "rrule", "duration" ]
         }
       }]
     }

@@ -1,7 +1,6 @@
 const Errors = require('common-errors');
-const Promise = require('bluebird');
 
-module.exports = function isAdmin(request) {
+module.exports = async function isAdmin(request) {
   const { auth } = request;
   const { user } = auth.credentials;
 
@@ -9,5 +8,5 @@ module.exports = function isAdmin(request) {
     throw new Errors.HttpStatusError(403, 'Access to this action is denied');
   }
 
-  return Promise.resolve(request);
+  return request;
 };

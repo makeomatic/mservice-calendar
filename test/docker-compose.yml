@@ -27,7 +27,6 @@ services:
     volumes:
       - ${PWD}/test/configs:/src/configs:ro
     environment:
-      DEBUG: 'ioredis:*'
       NODE_ENV: 'production'
       NCONF_FILE_PATH: '["/src/configs/ms-users/config.js"]'
       MS_USERS__LOGGER__DEFAULT_LOGGER: 'true'
@@ -40,4 +39,3 @@ services:
     image: postgres:10-alpine
     volumes:
       - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
-    hostname: pg

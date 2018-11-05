@@ -47,6 +47,7 @@ class Event {
     const { tz } = data;
     if (tz) {
       assert(zones[tz], `${tz} must be one of the supported by moment-timezone`);
+      opts.tzid = tz;
     }
 
     // do not cache RRule, we are not likely to work with same events
