@@ -1,7 +1,7 @@
+const partial = require('lodash/partial');
 const isAdmin = require('../middlewares/isAdmin');
 const { EVENT_TAGS_TABLE } = require('../constants');
 const { TYPE_TAG, modelResponse } = require('../utils/response');
-const partial = require('lodash/partial');
 
 // cached response
 const response = partial(modelResponse, partial.placeholder, TYPE_TAG);

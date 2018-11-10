@@ -1,13 +1,11 @@
-module.exports = {
-  amqp: {
-    transport: {
-      connection: {
-        host: '0.0.0.0',
-        port: 5672,
-      },
+exports.amqp = {
+  transport: {
+    connection: {
+      host: 'rabbitmq',
+      port: 5672,
     },
-    router: {
-      enabled: true,
-    },
+  },
+  router: {
+    enabled: true,
   },
 };

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const assert = require('assert');
-const Service = require('../src');
+const Service = require('../lib');
 
 const service = new Service();
 const { knex } = service;

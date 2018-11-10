@@ -1,7 +1,7 @@
-const isAdmin = require('../middlewares/isAdmin');
-const { TYPE_EVENT, modelResponse } = require('../utils/response');
 const partial = require('lodash/partial');
 const defaults = require('lodash/defaults');
+const isAdmin = require('../middlewares/isAdmin');
+const { TYPE_EVENT, modelResponse } = require('../utils/response');
 
 // cached response
 const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
@@ -15,7 +15,7 @@ const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);
  */
 function EventCreateAction({ params, auth }) {
   // attach owner
-  const event = params.event;
+  const { event } = params;
   event.owner = auth.credentials.user.id;
 
   // set defaults

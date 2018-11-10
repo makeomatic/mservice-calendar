@@ -1,11 +1,13 @@
 {
   "plugins": [
-    "transform-strict-mode",
-    "transform-flow-strip-types"
+    "@babel/plugin-transform-strict-mode",
+    "@babel/plugin-transform-flow-strip-types"
   ],
   "env": {
     "test": {
-      "plugins": [ "istanbul" ]
+      "plugins": [
+        "istanbul"
+      ]
     }
   }
 }

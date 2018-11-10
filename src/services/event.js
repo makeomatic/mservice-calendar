@@ -1,12 +1,13 @@
 const Promise = require('bluebird');
 const Errors = require('common-errors');
-const RRule = require('rrule').RRule;
 const moment = require('moment-timezone');
 const assert = require('assert');
 const is = require('is');
+const { RRule } = require('rrule');
 const { coroutine } = require('../utils/getMethods');
+const { zones: cachedZones, MomentTimezone } = require('../zones');
 
-const zones = {};
+const zones = Object.create(null);
 const aggregateZones = (acc, zone) => { acc[zone] = true; return acc; };
 moment.tz.names().reduce(aggregateZones, zones);
 
@@ -44,9 +45,23 @@ class Event {
     assert(until.subtract(1, 'year').isBefore(now), 'UNTIL must be within a year from now');
     assert(dtstart.add(1, 'year').isAfter(now), 'DTSTART must be without the last year');
 
-    const tz = data.tz;
+    const { tz } = data;
     if (tz) {
       assert(zones[tz], `${tz} must be one of the supported by moment-timezone`);
+      if (cachedZones[tz]) {
+        opts.tzid = cachedZones[tz];
+      } else {
+        opts.tzid = cachedZones[tz] = new MomentTimezone(tz);
+      }
+
+      // set to the specified offset
+      const adjustedStartDate = dtstart
+        .utcOffset(opts.tzid.offset(dtstart.valueOf()));
+
+      // re-adjust based on start date
+      opts.byhour = adjustedStartDate.hours();
+      opts.byminute = adjustedStartDate.minute();
+      opts.bysecond = 0;
     }
 
     // do not cache RRule, we are not likely to work with same events

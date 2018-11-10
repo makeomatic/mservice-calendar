@@ -4,8 +4,7 @@ function isGenerator(obj) {
   return typeof obj.next === 'function' && typeof obj.throw === 'function';
 }
 
-function isGeneratorFunction(obj) {
-  const constructor = obj.constructor;
+function isGeneratorFunction({ constructor }) {
   if (!constructor) return false;
   if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') return true;
   return isGenerator(constructor.prototype);

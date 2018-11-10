@@ -1,12 +1,13 @@
-const RRule = require('rrule').RRule;
+const { RRule } = require('rrule');
 const moment = require('moment');
-const _ = require('lodash');
+const extend = require('lodash/extend');
+const take = require('lodash/take');
 
 module.exports = function postSingle(data) {
   const rule = RRule.fromString(data.rrule);
   const dates = rule.between(moment.utc().toDate(), rule.options.until);
 
-  _.extend(data, {
-    start_time: _.take(dates, 3),
+  extend(data, {
+    start_time: take(dates, 3),
   });
 };

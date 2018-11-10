@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const assert = require('assert');
 const moment = require('moment');
 const uniqBy = require('lodash/uniqBy');
@@ -6,7 +5,8 @@ const request = require('../helpers/request');
 const { login } = require('../helpers/users');
 
 describe('Events Subscription Suite', function suite() {
-  const Calendar = require('../../../src');
+  const Calendar = require('../../src');
+  const { EVENT_TABLE } = require('../../src/constants');
   const calendar = new Calendar(global.SERVICES);
   const uri = {
     create: 'http://0.0.0.0:3000/api/calendar/event/create',
@@ -16,7 +16,10 @@ describe('Events Subscription Suite', function suite() {
     subsList: 'http://0.0.0.0:3000/api/calendar/event/subs/list',
   };
 
-  before('start service', () => calendar.connect());
+  before('start service', async () => {
+    await calendar.connect();
+    await calendar.knex.raw(`DELETE FROM ${EVENT_TABLE}`);
+  });
 
   before('login first admin', () => (
     login(calendar.amqp, 'admin@foo.com', 'adminpassword00000')
@@ -28,24 +31,23 @@ describe('Events Subscription Suite', function suite() {
       .tap(({ jwt }) => { this.firstUserToken = jwt; })
   ));
 
-  before('create event', () => 
-    request(uri.create, {
-      token: this.adminToken,
-      event: {
-        title: 'Super Show',
-        description: 'It\'s an amazing show powered by Felipex.',
-        tags: ['music', 'country'],
-        hosts: ['dj felipe'],
-        rrule: 'FREQ=WEEKLY;DTSTART=20180720T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=MO',
-        duration: 30,
-      },
-    })
-    .then(({ body }) => { this.firstEventId = body.data.id; })
-  );
+  before('create event', () => request(uri.create, {
+    token: this.adminToken,
+    event: {
+      title: 'Super Show',
+      description: 'It\'s an amazing show powered by Felipex.',
+      tags: ['music', 'country'],
+      hosts: ['dj felipe'],
+      rrule: 'FREQ=WEEKLY;DTSTART=20180720T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=MO',
+      duration: 30,
+      tz: 'Europe/London',
+    },
+  }).then(({ body }) => {
+    this.firstEventId = body.data.id;
+    return null;
+  }));
 
-  after('delete event', () =>
-    request(uri.remove, { token: this.adminToken, id: this.firstEventId }),
-  );
+  after('delete event', () => request(uri.remove, { token: this.adminToken, id: this.firstEventId }));
 
   after('stop service', () => calendar.close());
 
@@ -58,7 +60,8 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
+        assert.equal(body.name, 'HttpStatusError');
+        return null;
       })
     ));
 
@@ -70,7 +73,8 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
+        assert.equal(body.name, 'HttpStatusError');
+        return null;
       })
     ));
 
@@ -83,6 +87,7 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.statusCode, 401);
         assert.equal(body.error, 'Unauthorized');
         assert.equal(body.name, 'AuthenticationRequiredError');
+        return null;
       })
     ));
 
@@ -90,8 +95,9 @@ describe('Events Subscription Suite', function suite() {
       request(uri.subscribe, {
         token: this.firstUserToken,
         id: this.firstEventId,
-      }).then(({ body, statusCode }) => {
+      }).then(({ statusCode }) => {
         assert.equal(statusCode, 200);
+        return null;
       })
     ));
 
@@ -104,6 +110,7 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.statusCode, 403);
         assert.equal(body.error, 'Forbidden');
         assert.equal(body.name, 'NotPermittedError');
+        return null;
       })
     ));
 
@@ -116,6 +123,7 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.statusCode, 404);
         assert.equal(body.error, 'Not Found');
         assert.equal(body.name, 'NotFoundError');
+        return null;
       })
     ));
   });
@@ -129,53 +137,50 @@ describe('Events Subscription Suite', function suite() {
         .tap(({ jwt }) => { secondUserToken = jwt; })
     ));
 
-    before('create event', () => 
-      request(uri.create, {
-        token: this.adminToken,
-        event: {
-          title: 'Big Show!',
-          description: 'Such a big show!',
-          tags: ['music', 'pop'],
-          hosts: ['dj malboro'],
-          rrule: 'FREQ=WEEKLY;DTSTART=20180720T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=TU',
-          duration: 60,
-        },
-      })
-      .then(({ body }) => { secondEventId = body.data.id; })
-    );
+    before('create event', () => request(uri.create, {
+      token: this.adminToken,
+      event: {
+        title: 'Big Show!',
+        description: 'Such a big show!',
+        tags: ['music', 'pop'],
+        hosts: ['dj malboro'],
+        rrule: 'FREQ=WEEKLY;DTSTART=20180720T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=TU',
+        duration: 60,
+        tz: 'Europe/London',
+      },
+    })
+      .then(({ body }) => { secondEventId = body.data.id; }));
 
-    before('subscribe to event', () =>
-      request(uri.subscribe, {
-        token: this.firstUserToken,
-        id: secondEventId,
-      }));
+    before('subscribe to event', () => request(uri.subscribe, {
+      token: this.firstUserToken,
+      id: secondEventId,
+    }));
 
-    before('subscribe to event', () =>
-      request(uri.subscribe, {
-        token: secondUserToken,
-        id: secondEventId,
-      }));
+    before('subscribe to event', () => request(uri.subscribe, {
+      token: secondUserToken,
+      id: secondEventId,
+    }));
 
-    after('delete event', () =>
-      request(uri.remove, {
-        token: this.adminToken,
-        id: secondEventId,
-      }));
+    after('delete event', () => request(uri.remove, {
+      token: this.adminToken,
+      id: secondEventId,
+    }));
 
     it('should return an error if filter is missing', () => {
-      request(uri.subsList, {
+      return request(uri.subsList, {
         token: this.adminToken,
       }).then(({ body, statusCode }) => {
         assert.ok(/data should have required property 'filter'/.test(body.message), JSON.stringify(body));
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
-      })
+        assert.equal(body.name, 'HttpStatusError');
+        return null;
+      });
     });
 
     it('should return an error if token is missing', () => {
-      request(uri.subsList, {
+      return request(uri.subsList, {
         filter: {
           id: secondEventId,
         },
@@ -184,8 +189,9 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
-      })
+        assert.equal(body.name, 'HttpStatusError');
+        return null;
+      });
     });
 
     it('should return a list of subscriptions filtering by event', () => (
@@ -214,6 +220,7 @@ describe('Events Subscription Suite', function suite() {
         assert.ok(uniqByEventId[0].attributes.hosts);
         assert.ok(uniqByEventId[0].attributes.duration);
         assert.ok(uniqByEventId[0].attributes.owner);
+        return null;
       })
     ));
 
@@ -230,7 +237,7 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.data.length, 2);
 
         const uniqByUsername = uniqBy(body.data, 'attributes.username');
-        
+
         assert.equal(uniqByUsername.length, 1);
         assert.ok(uniqByUsername[0].id);
         assert.equal(uniqByUsername[0].type, 'eventSub');
@@ -243,6 +250,7 @@ describe('Events Subscription Suite', function suite() {
         assert.ok(uniqByUsername[0].attributes.hosts);
         assert.ok(uniqByUsername[0].attributes.duration);
         assert.ok(uniqByUsername[0].attributes.owner);
+        return null;
       })
     ));
 
@@ -270,24 +278,24 @@ describe('Events Subscription Suite', function suite() {
         assert.ok(body.data[0].attributes.hosts);
         assert.ok(body.data[0].attributes.duration);
         assert.ok(body.data[0].attributes.owner);
+        return null;
       })
     ));
 
-    it('should not return subscriptions if event is out of range', () =>
-      request(uri.subsList, {
-        token: this.adminToken,
-        filter: {
-          id: this.firstEventId,
-          startTime: moment.utc('20180720T090000Z').subtract(1, 'years').toDate(),
-          endTime: moment.utc('20180720T090000Z').subtract(6, 'months').toDate(),
-        },
-      }).then(({ body, statusCode }) => {
-        assert.equal(statusCode, 200);
-        assert.ok(body.meta);
-        assert.equal(body.meta.count, 0);
-        assert.equal(body.data.length, 0);
-      })
-    );
+    it('should not return subscriptions if event is out of range', () => request(uri.subsList, {
+      token: this.adminToken,
+      filter: {
+        id: this.firstEventId,
+        startTime: moment.utc('20180720T090000Z').subtract(1, 'years').toDate(),
+        endTime: moment.utc('20180720T090000Z').subtract(6, 'months').toDate(),
+      },
+    }).then(({ body, statusCode }) => {
+      assert.equal(statusCode, 200);
+      assert.ok(body.meta);
+      assert.equal(body.meta.count, 0);
+      assert.equal(body.data.length, 0);
+      return null;
+    }));
 
     it('should return a list of subscriptions filtering by event and date', () => (
       request(uri.subsList, {
@@ -314,6 +322,7 @@ describe('Events Subscription Suite', function suite() {
         assert.ok(body.data[0].attributes.hosts);
         assert.ok(body.data[0].attributes.duration);
         assert.ok(body.data[0].attributes.owner);
+        return null;
       })
     ));
 
@@ -329,8 +338,8 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.meta.count, 3);
         assert.equal(body.data.length, 3);
 
-        for (let i = 0; i < body.meta.count; i++) {
-          const {id, type, attributes } = body.data[i];
+        for (let i = 0; i < body.meta.count; i += 1) {
+          const { id, type, attributes } = body.data[i];
 
           assert.equal(type, 'eventSub');
           assert.ok(attributes);
@@ -341,16 +350,16 @@ describe('Events Subscription Suite', function suite() {
           assert.ok(attributes.tags);
           assert.ok(attributes.hosts);
           assert.ok(attributes.duration);
-          
+
           if (id === this.firstEventId) {
             assert.equal(attributes.username, 'user@foo.com');
           } else if (id === secondEventId) {
             assert(attributes.username === 'user@foo.com' || attributes.username === 'second.user@foo.com');
           }
         }
+        return null;
       })
     ));
-
   });
 
   describe('Unsubscribe', () => {
@@ -362,7 +371,8 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
+        assert.equal(body.name, 'HttpStatusError');
+        return null;
       })
     ));
 
@@ -374,7 +384,8 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(statusCode, 400);
         assert.equal(body.statusCode, 400);
         assert.equal(body.error, 'Bad Request');
-        assert.equal(body.name, 'ValidationError');
+        assert.equal(body.name, 'HttpStatusError');
+        return null;
       })
     ));
 
@@ -387,6 +398,7 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.statusCode, 401);
         assert.equal(body.error, 'Unauthorized');
         assert.equal(body.name, 'AuthenticationRequiredError');
+        return null;
       })
     ));
 
@@ -400,6 +412,7 @@ describe('Events Subscription Suite', function suite() {
         assert.equal(body.statusCode, 403);
         assert.equal(body.error, 'Forbidden');
         assert.equal(body.name, 'NotPermittedError');
+        return null;
       })
     ));
 
@@ -410,6 +423,7 @@ describe('Events Subscription Suite', function suite() {
       }).then(({ body, statusCode }) => {
         assert.equal(statusCode, 200);
         assert.equal(body, this.firstEventId);
+        return null;
       })
     ));
   });

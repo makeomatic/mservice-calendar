@@ -1,9 +1,33 @@
 version: '2'
 
 services:
+  redis:
+    hostname: redis
+    image: makeomatic/redis-cluster:3.2.9
+
+  ms-users:
+    links:
+      - redis
+      - rabbitmq
+    image: makeomatic/ms-users:9.3.0-8.0.4
+    volumes:
+      - ${PWD}/test/configs:/src/configs:ro
+    environment:
+      NODE_ENV: 'production'
+      NCONF_FILE_PATH: '["/src/configs/ms-users/config.js"]'
+      MS_USERS__LOGGER__DEFAULT_LOGGER: 'true'
+      MS_USERS__INIT_ADMIN_ACCOUNTS_DELAY: '1'
+
+  rabbitmq:
+    image: rabbitmq:3.7.8-alpine
+
+  postgres:
+    image: postgres:10-alpine
+    volumes:
+      - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
+
   tester:
-    container_name: tester
-    image: makeomatic/node:7.8.0-tester
+    image: makeomatic/node:10.13.0-tester
     depends_on:
       - postgres
       - rabbitmq
@@ -15,42 +39,3 @@ services:
     environment:
       NODE_ENV: "test"
       DEBUG: ${DEBUG}
-
-  redis:
-    hostname: redis
-    container_name: redis
-    image: makeomatic/redis-cluster:3.2.8
-
-  ms-users:
-    links:
-      - redis
-      - rabbitmq
-    image: makeomatic/ms-users:9.3.0-8.0.4
-    hostname: ms-users
-    container_name: ms-users
-    volumes:
-      - ${PWD}/test/configs:/src/configs:ro
-    environment:
-      DEBUG: 'ioredis:*'
-      NODE_ENV: 'production'
-      NCONF_FILE_PATH: '["/src/configs/ms-users/config.js"]'
-      MS_USERS__LOGGER__DEFAULT_LOGGER: 'true'
-      MS_USERS__INIT_ADMIN_ACCOUNTS_DELAY: '1'
-
-  rabbitmq:
-    expose:
-      - "5672"
-    image: makeomatic/rabbitmq:3.6.6
-    container_name: rabbitmq
-    hostname: rabbitmq
-    volumes:
-      - ./configs/rabbitmq/rabbitmq.config:/usr/lib/rabbitmq/etc/rabbitmq/rabbitmq.config
-
-  postgres:
-    expose:
-      - "5432"
-    image: postgres:9.5.5-alpine
-    volumes:
-      - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
-    container_name: pg
-    hostname: pg

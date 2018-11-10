@@ -1,7 +1,5 @@
 const path = require('path');
 
-module.exports = {
-  validator: [
-    path.resolve(__dirname, '../../schemas'),
-  ],
+exports.validator = {
+  schemas: [path.resolve(__dirname, '../../schemas')],
 };

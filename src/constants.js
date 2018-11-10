@@ -17,5 +17,6 @@ module.exports = {
     'picture',
     'link',
     'tags',
+    'tz',
   ],
 };

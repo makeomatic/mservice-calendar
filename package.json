@@ -1,17 +1,18 @@
 {
   "name": "mservice-calendar",
   "description": "Calendar microservice",
+  "version": "0.0.0-development",
   "main": "./lib/index.js",
   "scripts": {
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
     "compile": "babel -d ./lib ./src",
-    "docker-release": "./docker-release.sh",
+    "docker-release": "mdep docker release",
     "lint": "eslint ./src",
-    "prepublish": "npm run compile",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "start": "node ./bin/mservice.js | bunyan -o short",
-    "pretest": "npm run compile",
-    "test": "rimraf ./coverage && npm run lint && ./test/docker.sh"
+    "prepublish": "yarn compile",
+    "semantic-release": "semantic-release",
+    "start": "mfleet",
+    "pretest": "yarn compile",
+    "test": "yarn lint && mdep test run"
   },
   "repository": {
     "type": "git",
@@ -28,84 +29,74 @@
   },
   "homepage": "https://github.com/makeomatic/mservice-calendar#readme",
   "dependencies": {
-    "bluebird": "^3.5.0",
+    "@microfleet/core": "^13.3.2",
+    "@microfleet/transport-amqp": "^13.1.2",
+    "@microfleet/validation": "^8.1.0",
+    "bluebird": "^3.5.3",
     "bunyan": "^1.8.9",
     "common-errors": "^1.0.0",
     "firebase-admin": "^5.12.0",
-    "hapi": "^16.0.1",
+    "hapi": "^17.7.0",
     "is": "^3.2.1",
-    "knex": "^0.12.9",
+    "knex": "^0.15.2",
     "lodash": "^4.17.2",
+    "luxon": "^1.5.0",
     "moment": "^2.18.1",
     "moment-timezone": "^0.5.10",
-    "ms-amqp-transport": "^7.1.0",
     "ms-conf": "^3.1.2",
-    "ms-validation": "^3.0.0",
-    "mservice": "^6.0.1",
-    "pg": "^6.1.5",
+    "pg": "^7.6.1",
     "rrule": "^2.2.0",
     "stdout-stream": "^1.4.0",
     "uid2": "0.0.3",
     "uuid": "^3.0.1",
-    "yargs": "^7.0.2"
+    "yargs": "^12.0.2"
   },
   "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.5",
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0",
+    "@babel/plugin-transform-strict-mode": "^7.0.0",
+    "@babel/register": "^7.0.0",
     "@google-cloud/storage": "^0.8.0",
+    "@makeomatic/deploy": "^8.2.3",
+    "@semantic-release/changelog": "^3.0.1",
+    "@semantic-release/exec": "^3.3.0",
+    "@semantic-release/git": "^7.0.5",
     "apidoc": "^0.17.5",
     "apidoc-plugin-schema": "^0.1.0",
-    "babel-cli": "^6.24.0",
-    "babel-core": "^6.24.0",
-    "babel-eslint": "^7.2.1",
-    "babel-plugin-istanbul": "^4.1.1",
-    "babel-plugin-transform-flow-strip-types": "^6.22.0",
-    "babel-plugin-transform-strict-mode": "^6.22.0",
-    "babel-register": "^6.24.0",
-    "codecov": "^2.1.0",
-    "cross-env": "^3.2.4",
-    "dotenv": "^4.0.0",
-    "eslint": "^3.18.0",
-    "eslint-config-makeomatic": "^1.0.1",
+    "babel-eslint": "^10.0.1",
+    "babel-plugin-istanbul": "^5.1.0",
+    "codecov": "^3.1.0",
+    "cross-env": "^5.2.0",
+    "dotenv": "^6.1.0",
+    "eslint": "^5.8.0",
+    "eslint-config-makeomatic": "^3.0.0",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-promise": "^4.0.1",
     "hash-files": "^1.1.1",
     "json": "^9.0.6",
-    "latest-version-cli": "^1.1.0",
     "mime-types": "^2.1.15",
-    "mocha": "^3.2.0",
-    "nyc": "^10.2.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
     "request": "^2.81.0",
     "request-promise": "^4.2.0",
     "rimraf": "^2.6.1",
-    "semantic-release": "^6.3.2",
-    "sinon": "^6.3.4"
-  },
-  "resolutions": {
-    "boom": "4.2.0"
-  },
-  "release": {
-    "verifyConditions": []
+    "sinon": "^7.1.1"
   },
   "engines": {
-    "node": ">= 7.6.0",
-    "npm": ">= 3.0.0"
+    "node": ">= 8.9.0",
+    "npm": ">= 4.0.0"
   },
-  "nyc": {
-    "include": [
-      "src/**/*.js"
-    ],
-    "exclude": [
-      "src/**/*.spec.js"
-    ],
-    "require": [
-      "babel-register"
-    ],
-    "sourceMap": false,
-    "instrument": false,
-    "cache": true,
-    "reporter": [
-      "lcov",
-      "json",
-      "text-summary"
-    ]
-  }
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS",
+      "prepare-commit-msg": "./node_modules/@makeomatic/deploy/git-hooks/prepare-commit-msg $HUSKY_GIT_PARAMS"
+    }
+  },
+  "files": [
+    "schemas/",
+    "lib/",
+    "src/",
+    "bin/"
+  ]
 }

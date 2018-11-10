@@ -1,5 +1,5 @@
-const { TYPE_EVENT, modelResponse } = require('../utils/response');
 const partial = require('lodash/partial');
+const { TYPE_EVENT, modelResponse } = require('../utils/response');
 
 // cached response
 const response = partial(modelResponse, partial.placeholder, TYPE_EVENT);

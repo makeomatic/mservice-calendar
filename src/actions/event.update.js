@@ -11,8 +11,7 @@ const { successResponse } = require('../utils/response');
 function EventUpdateAction({ params, auth }) {
   // attach owner, so that we can only update this
   const owner = auth.credentials.user.id;
-  const event = params.event;
-  const id = params.id;
+  const { event, id } = params;
 
   // update the event
   return this

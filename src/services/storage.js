@@ -4,6 +4,9 @@
  */
 
 const Promise = require('bluebird');
+const pick = require('lodash/pick');
+const moment = require('moment');
+const Errors = require('common-errors');
 const {
   EVENT_TABLE,
   EVENT_SPANS_TABLE,
@@ -11,19 +14,18 @@ const {
   EVENT_TAGS_TABLE,
   EVENT_SUBS_TABLE,
 } = require('../constants');
-const { pick } = require('lodash');
-const moment = require('moment-timezone');
-const Errors = require('common-errors');
 
-const defaultTZ = moment.tz.guess();
 const isOverlapping = { routine: 'check_exclusion_or_unique_constraint' };
+const isNonExistent = { constraint: 'events_spans_event_id_foreign' };
 const timestampRegexp = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/g;
 const momentFormat = 'YYYY-MM-DD HH:mm:ss';
-const overlapError = (a, b) =>
-  `You want to create an event starting at ${a}, but it overlaps with another one at ${b}`;
+const overlapError = (a, b) => (
+  `You want to create an event starting at ${a}, but it overlaps with another one at ${b}`
+);
 
 class Storage {
   log: Object;
+
   client: any;
 
   constructor(knex: any, logger: Object) {
@@ -48,12 +50,17 @@ class Storage {
     });
   }
 
-  static HandleOverlap(e: Object, tz: String = defaultTZ) {
+  // this is already normalized
+  static HandleOverlap(e: Object) {
     // detail: 'Key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00"))
     // conflicts with existing key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00")).',
     const [one, , two] = e.detail.match(timestampRegexp);
-    const events = [two, one].map(time => moment(time, momentFormat).tz(tz).format('llll'));
+    const events = [two, one].map(time => moment(time, momentFormat).format('llll'));
     throw new Errors.ValidationError(overlapError(...events));
+  }
+
+  static HandleInvalidId() {
+    throw new Errors.ValidationError('event not present');
   }
 
   /**
@@ -67,30 +74,37 @@ class Storage {
 
     this.log.debug('creating event', data);
 
-    return knex.transaction(trx => (
-      knex(EVENT_TABLE)
-      .transacting(trx)
-      .returning('id')
-      .insert(resultingEvent)
-      .spread((id) => {
-        this.log.debug('created event', id);
-
-        // embed id into the resulting event
-        resultingEvent.id = id;
-
-        // generate spans
-        const spans = Storage.generateSpans(id, data);
-        this.log.debug('generated spans %d', spans.length);
-
-        return knex(EVENT_SPANS_TABLE)
+    return knex.transaction(async (trx) => {
+      try {
+        const result = await knex(EVENT_TABLE)
           .transacting(trx)
-          .insert(spans)
-          .return(resultingEvent);
-      })
-      .tap(trx.commit)
-      .catch(isOverlapping, e => Storage.HandleOverlap(e, data.tz))
-      .catch(e => e.name !== 'ValidationError', trx.rollback)
-    ));
+          .returning('id')
+          .insert(resultingEvent)
+          .spread((id) => {
+            this.log.debug('created event', id);
+
+            // embed id into the resulting event
+            resultingEvent.id = id;
+
+            // generate spans
+            const spans = Storage.generateSpans(id, data);
+            this.log.debug('generated spans %d', spans.length);
+
+            return knex(EVENT_SPANS_TABLE)
+              .transacting(trx)
+              .insert(spans)
+              .return(resultingEvent);
+          })
+          .catch(isNonExistent, Storage.HandleInvalidId)
+          .catch(isOverlapping, Storage.HandleOverlap);
+
+        await trx.commit(result);
+        return result;
+      } catch (e) {
+        await trx.rollback(e);
+        return null;
+      }
+    });
   }
 
   updateEventMeta(id: number, data: Object, trx: Object | boolean = false) {
@@ -125,16 +139,28 @@ class Storage {
 
     this.log.debug('generated spans %d', spans.length);
 
-    return knex.transaction(trx => (
-      Promise.join(
-        this.updateEventMeta(id, data, trx),
-        knex(EVENT_SPANS_TABLE).transacting(trx).where('event_id', id).del()
-      )
-      .then(() => knex(EVENT_SPANS_TABLE).transacting(trx).insert(spans))
-      .tap(trx.commit)
-      .catch(isOverlapping, e => Storage.HandleOverlap(e, data.tz))
-      .catch(e => e.name !== 'HttpStatusError', trx.rollback)
-    ));
+    return knex.transaction(async (trx) => {
+      try {
+        const cleanup = await Promise.all([
+          this.updateEventMeta(id, data, trx),
+          knex(EVENT_SPANS_TABLE).transacting(trx).where({ event_id: id }).del(),
+        ]);
+
+        this.log.debug('cleaned up old events: %j', cleanup);
+
+        const response = await knex(EVENT_SPANS_TABLE)
+          .transacting(trx)
+          .insert(spans)
+          .catch(isNonExistent, Storage.HandleInvalidId)
+          .catch(isOverlapping, Storage.HandleOverlap);
+
+        await trx.commit(response);
+        return response;
+      } catch (e) {
+        await trx.rollback(e);
+        return null;
+      }
+    });
   }
 
   getEvent(id: number) {
@@ -165,15 +191,16 @@ class Storage {
         'duration',
         'tags',
         'hosts',
+        'tz',
         `${EVENT_TABLE}.owner`,
         knex.raw(`array_to_json(array_agg("${EVENT_SPANS_TABLE}"."start_time")) as start_time`),
       ])
       .from(EVENT_TABLE)
-      .joinRaw(`INNER JOIN ${EVENT_SPANS_TABLE} on (`
+      .joinRaw((`INNER JOIN ${EVENT_SPANS_TABLE} on (`
         + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
         + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
         + ')'
-      );
+      ));
 
     // filter clauses
     if (owner) {
@@ -255,10 +282,11 @@ class Storage {
       ])
       .from(EVENT_SUBS_TABLE)
       .join(EVENT_TABLE, `${EVENT_SUBS_TABLE}.event_id`, '=', `${EVENT_TABLE}.id`)
-      .joinRaw('INNER JOIN (' +
-        `SELECT event_id FROM ${EVENT_SPANS_TABLE} ` +
-        `WHERE period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}') ` +
-        `GROUP BY event_id) ${EVENT_SPANS_TABLE} on (${EVENT_SPANS_TABLE}.event_id = ${EVENT_TABLE}.id)`);
+      .joinRaw(('INNER JOIN ('
+        + `SELECT event_id FROM ${EVENT_SPANS_TABLE} `
+        + `WHERE period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}') `
+        + `GROUP BY event_id) ${EVENT_SPANS_TABLE} on (${EVENT_SPANS_TABLE}.event_id = ${EVENT_TABLE}.id)`
+      ));
 
     if (id) {
       query.where(`${EVENT_SUBS_TABLE}.event_id`, id);
@@ -301,11 +329,11 @@ class Storage {
     if (isActive) {
       query
         .joinRaw(`INNER JOIN ${EVENT_TABLE} on ${EVENT_TABLE}.tags @> ARRAY[${EVENT_TAGS_TABLE}.id]`)
-        .joinRaw(`INNER JOIN ${EVENT_SPANS_TABLE} on (`
+        .joinRaw((`INNER JOIN ${EVENT_SPANS_TABLE} on (`
           + `${EVENT_TABLE}.id = ${EVENT_SPANS_TABLE}.event_id AND `
           + `${EVENT_SPANS_TABLE}.period && tsrange(TIMESTAMP '${startTime}', TIMESTAMP '${endTime}')`
           + ')'
-        )
+        ))
         .groupByRaw(`${EVENT_TAGS_TABLE}.id`);
     }
 

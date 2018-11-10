@@ -1,21 +1,32 @@
 const assert = require('assert');
 const moment = require('moment-timezone');
-const extend = require('lodash/extend');
-const request = require('../../helpers/request');
-const { login } = require('../../helpers/users');
 
 describe('rfx-filter-group-list hook test suite', function suite() {
-  const Calendar = require('../../../src');
-  const calendar = new Calendar(extend({}, global.SERVICES, {
-    hooks: { 'event:list:post': require('../../../src/custom/rfx-filter-group-list.js') },
-  }));
+  let Calendar;
+  let calendar;
+
+  const request = require('../../helpers/request');
+  const { login } = require('../../helpers/users');
   const now = () => moment(new Date(2018, 10, 16));
+  const { EVENT_TABLE } = require('../../../src/constants');
   const uri = {
     create: 'http://0.0.0.0:3000/api/calendar/event/create',
     list: 'http://0.0.0.0:3000/api/calendar/event/list',
   };
 
-  before('start service', () => calendar.connect());
+  before(async () => {
+    Calendar = require('../../../src');
+    calendar = new Calendar({
+      hooks: {
+        // eslint-disable-next-line
+        'event:list:post': require('/src/src/custom/rfx-filter-group-list.js'),
+      },
+    });
+
+    await calendar.connect();
+    await calendar.knex.raw(`DELETE FROM ${EVENT_TABLE}`);
+  });
+
   after('stop service', () => calendar.close());
 
   before('login first admin', () => (
@@ -39,6 +50,7 @@ describe('rfx-filter-group-list hook test suite', function suite() {
       hosts: ['dj felipe'],
       rrule: 'FREQ=WEEKLY;DTSTART=20180920T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=MO',
       duration: 30,
+      tz: 'Europe/London',
     },
   }));
 
@@ -51,19 +63,19 @@ describe('rfx-filter-group-list hook test suite', function suite() {
       hosts: ['dj malboro'],
       rrule: 'FREQ=WEEKLY;DTSTART=20180920T090000Z;UNTIL=20181221T100000Z;WKST=SU;BYDAY=TU',
       duration: 30,
+      tz: 'Europe/London',
     },
   }));
 
-  describe('event/list/', () => {  
-    it('list events by stationGroup', () =>
-      request(uri.list, {
-        startTime: now().subtract(1, 'months').toISOString(),
-        endTime: now().add(1, 'months').toISOString(),
-        hosts: ['dj felipe'],
-        meta: {
-          stationGroup: 'group01',
-        },
-      })
+  describe('event/list/', () => {
+    it('list events by stationGroup', () => request(uri.list, {
+      startTime: now().subtract(1, 'months').toISOString(),
+      endTime: now().add(1, 'months').toISOString(),
+      hosts: ['dj felipe'],
+      meta: {
+        stationGroup: 'group01',
+      },
+    })
       .then((response) => {
         const { body, statusCode } = response;
 
@@ -78,15 +90,14 @@ describe('rfx-filter-group-list hook test suite', function suite() {
         return null;
       }));
 
-    it('list events by userId', () =>
-      request(uri.list, {
-        startTime: now().subtract(1, 'months').toISOString(),
-        endTime: now().add(1, 'months').toISOString(),
-        hosts: ['dj malboro'],
-        meta: {
-          userId: 'second.admin@foo.com',
-        },
-      })
+    it('list events by userId', () => request(uri.list, {
+      startTime: now().subtract(1, 'months').toISOString(),
+      endTime: now().add(1, 'months').toISOString(),
+      hosts: ['dj malboro'],
+      meta: {
+        userId: 'second.admin@foo.com',
+      },
+    })
       .then((response) => {
         const { body, statusCode } = response;
 
@@ -103,6 +114,6 @@ describe('rfx-filter-group-list hook test suite', function suite() {
   });
 
   describe('event/tags/list/', () => {
-    
+
   });
 });
