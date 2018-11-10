@@ -8,3 +8,5 @@ exports.plugins = [
   'amqp',
   'knex',
 ];
+
+exports.eventVersion = 1;

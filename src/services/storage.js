@@ -5,7 +5,7 @@
 
 const Promise = require('bluebird');
 const pick = require('lodash/pick');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const Errors = require('common-errors');
 const {
   EVENT_TABLE,
@@ -28,17 +28,20 @@ class Storage {
 
   client: any;
 
-  constructor(knex: any, logger: Object) {
+  constructor(knex: any, logger: Object, version: string) {
     this.client = knex;
     this.log = logger;
+    this.version = version;
   }
 
   static generateSpans(id: number, data: Object): Array<Object> {
     const { parsedRRule, duration, owner } = data;
     const events = parsedRRule.all();
     return events.map((span) => {
-      const startTime = span.toISOString();
-      const endTime = moment(span).add(duration, 'minutes').toISOString();
+      const start = moment(span);
+      const adjustedStartTime = start.utcOffset(parsedRRule.tzid.offset(start.valueOf()), true);
+      const startTime = adjustedStartTime.toISOString();
+      const endTime = adjustedStartTime.add(duration, 'minutes').toISOString();
 
       return {
         event_id: id,
@@ -72,6 +75,7 @@ class Storage {
     const knex = this.client;
     const resultingEvent = pick(data, EVENT_FIELDS);
 
+    resultingEvent.version = this.version;
     this.log.debug('creating event', data);
 
     return knex.transaction(async (trx) => {
@@ -133,6 +137,7 @@ class Storage {
 
   updateEvent(id: number, owner: string, data: Object) {
     data.owner = owner;
+    data.version = this.version;
 
     const knex = this.client;
     const spans = Storage.generateSpans(id, data);

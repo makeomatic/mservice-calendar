@@ -8,4 +8,8 @@ exports.up = knex => (
   )
 );
 
-exports.down = () => {};
+exports.down = knex => (
+  knex.raw(
+    `ALTER TABLE ${EVENT_SPANS_TABLE} DROP CONSTRAINT owner_period_not_overlaps`
+  )
+);

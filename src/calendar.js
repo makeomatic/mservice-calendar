@@ -32,7 +32,7 @@ class Calendar extends Microfleet {
   }
 
   initServices() {
-    this.services.storage = new StorageService(this.knex, this.log);
+    this.services.storage = new StorageService(this.knex, this.log, this.config.eventVersion);
     this.services.event = new EventService(this.services.storage);
 
     this.log.info('Started Calendar service...');
