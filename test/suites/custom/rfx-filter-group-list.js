@@ -8,6 +8,7 @@ describe('rfx-filter-group-list hook test suite', function suite() {
   const request = require('../../helpers/request');
   const { login } = require('../../helpers/users');
   const now = () => moment(new Date(2018, 10, 16));
+  const { EVENT_TABLE } = require('../../../src/constants');
   const uri = {
     create: 'http://0.0.0.0:3000/api/calendar/event/create',
     list: 'http://0.0.0.0:3000/api/calendar/event/list',
@@ -21,7 +22,9 @@ describe('rfx-filter-group-list hook test suite', function suite() {
         'event:list:post': require('/src/src/custom/rfx-filter-group-list.js'),
       },
     });
+
     await calendar.connect();
+    await calendar.knex.raw(`DELETE FROM ${EVENT_TABLE}`);
   });
 
   after('stop service', () => calendar.close());

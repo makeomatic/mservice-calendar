@@ -4,6 +4,7 @@ const { login } = require('../../helpers/users');
 
 describe('rfx-post-single hook test suite', function suite() {
   const Calendar = require('../../../src');
+  const { EVENT_TABLE } = require('../../../src/constants');
   const calendar = new Calendar({
     hooks: {
       // eslint-disable-next-line
@@ -15,7 +16,10 @@ describe('rfx-post-single hook test suite', function suite() {
     single: 'http://0.0.0.0:3000/api/calendar/event/single',
   };
 
-  before('start service', () => calendar.connect());
+  before('start service', async () => {
+    await calendar.connect();
+    await calendar.knex.raw(`DELETE FROM ${EVENT_TABLE}`);
+  });
   after('stop service', () => calendar.close());
 
   before('login', () => login(calendar.amqp, 'admin@foo.com', 'adminpassword00000').tap(
