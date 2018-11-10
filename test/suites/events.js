@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const assert = require('assert');
 const moment = require('moment-timezone');
 const { omit } = require('lodash');
@@ -12,6 +13,25 @@ describe('Events Suite', function EventsSuite() {
   const calendar = new Calendar(global.SERVICES);
   const now = () => moment(new Date(2018, 10, 16));
   let _event1;
+
+  const uri = {
+    create: 'http://0.0.0.0:3000/api/calendar/event/create',
+    update: 'http://0.0.0.0:3000/api/calendar/event/update',
+    remove: 'http://0.0.0.0:3000/api/calendar/event/remove',
+    list: 'http://0.0.0.0:3000/api/calendar/event/list',
+    single: 'http://0.0.0.0:3000/api/calendar/event/single',
+    subscribe: 'http://0.0.0.0:3000/api/calendar/event/subscribe',
+    build: 'http://0.0.0.0:3000/api/calendar/build',
+    createTag: 'http://0.0.0.0:3000/api/calendar/event/tags/create',
+    updateTag: 'http://0.0.0.0:3000/api/calendar/event/tags/update',
+    listTags: 'http://0.0.0.0:3000/api/calendar/event/tags/list',
+    removeTag: 'http://0.0.0.0:3000/api/calendar/event/tags/delete',
+  };
+
+  const createEvent = async (eventData) => {
+    const { body } = await request(uri.create, { token: this.adminToken, event: eventData });
+    return body.data.id;
+  };
 
   before('start service', async () => {
     await calendar.connect();
@@ -30,36 +50,22 @@ describe('Events Suite', function EventsSuite() {
     this.userToken = jwt;
   });
 
-  const uri = {
-    create: 'http://0.0.0.0:3000/api/calendar/event/create',
-    update: 'http://0.0.0.0:3000/api/calendar/event/update',
-    remove: 'http://0.0.0.0:3000/api/calendar/event/remove',
-    list: 'http://0.0.0.0:3000/api/calendar/event/list',
-    single: 'http://0.0.0.0:3000/api/calendar/event/single',
-    subscribe: 'http://0.0.0.0:3000/api/calendar/event/subscribe',
-    build: 'http://0.0.0.0:3000/api/calendar/build',
-    createTag: 'http://0.0.0.0:3000/api/calendar/event/tags/create',
-    updateTag: 'http://0.0.0.0:3000/api/calendar/event/tags/update',
-    listTags: 'http://0.0.0.0:3000/api/calendar/event/tags/list',
-    removeTag: 'http://0.0.0.0:3000/api/calendar/event/tags/delete',
-  };
-
   const event1 = {
     title: 'Test event 1 - recurring',
     description: 'One time event',
     tags: ['music', 'news', 'jazz'],
     hosts: ['dj maverick', 'dj simons'],
-    rrule: 'FREQ=WEEKLY;DTSTART=20180920T120000;UNTIL=20181221T090000;WKST=SU;BYDAY=MO',
+    rrule: 'FREQ=WEEKLY;DTSTART=20180920T120000;UNTIL=20181221T090000;WKST=SU;BYDAY=TH',
     duration: 30,
-    tz: 'America/New_York',
+    tz: 'US/Eastern',
   };
 
   const event2 = {
     title: 'Test event 2 - start right after 1',
     description: 'recurring',
-    rrule: 'FREQ=WEEKLY;DTSTART=20180920T123000;UNTIL=20181221T090000;WKST=SU;BYDAY=MO',
+    rrule: 'FREQ=WEEKLY;DTSTART=20180920T123000;UNTIL=20181221T090000;WKST=SU;BYDAY=TH',
     duration: 30,
-    tz: 'America/New_York',
+    tz: 'US/Eastern',
   };
 
   const event3 = {
@@ -69,13 +75,20 @@ describe('Events Suite', function EventsSuite() {
     duration: 30,
   };
 
+  const event4 = {
+    title: 'tz-event-problem',
+    description: 'minimal',
+    rrule: 'DTSTART=20181029T120000Z;UNTIL=20181101T140000Z;WKST=SU;FREQ=WEEKLY;BYDAY=MO',
+    duration: 120,
+  };
+
   const update = {
     // In-case of MONTHLY we MUST specify day of which week we want to use. Every 3rd monday
     // otherwise monthly would only mean this day
     // We can also remove BYDAY and it will be months starting from DTSTART and + month
-    rrule: 'FREQ=MONTHLY;DTSTART=20180920T120000;UNTIL=20181221T090000;WKST=SU;BYDAY=3MO',
+    rrule: 'FREQ=MONTHLY;DTSTART=20180920T120000;UNTIL=20181221T090000;WKST=SU;BYDAY=3TH',
     duration: 15,
-    tz: 'America/New_York',
+    tz: 'US/Eastern',
   };
 
   describe('Create', () => {
@@ -114,7 +127,7 @@ describe('Events Suite', function EventsSuite() {
           const { body, statusCode } = response;
 
           assert.equal(statusCode, 200, JSON.stringify(body));
-          assert.ok(body.data);
+          assert.ok(body.data, body);
           assert.ok(body.data.id);
 
           const comparison = Object.assign({ owner: 'admin@foo.com' }, event1);
@@ -132,11 +145,11 @@ describe('Events Suite', function EventsSuite() {
           const { body, statusCode } = response;
 
           assert.notEqual(statusCode, 200);
-          assert.equal(body.error, 'Bad Request');
+          assert.equal(body.error, 'Bad Request', body);
           assert.equal(
             body.message,
-            'You want to create an event starting at Mon, Sep 24, 2018 12:00 PM, '
-          + 'but it overlaps with another one at Mon, Sep 24, 2018 12:00 PM'
+            'You want to create an event starting at Thu, Sep 20, 2018 12:00 PM, '
+          + 'but it overlaps with another one at Thu, Sep 20, 2018 12:00 PM'
           );
           assert.equal(body.name, 'ValidationError');
 
@@ -184,14 +197,15 @@ describe('Events Suite', function EventsSuite() {
 
           const precalculatedTime = Object.assign({
             start_time: [
-              '2018-10-22T12:00:00+00:00',
-              '2018-10-29T12:00:00+00:00',
-              '2018-11-05T13:00:00+00:00',
-              '2018-11-12T13:00:00+00:00',
-              '2018-11-19T13:00:00+00:00',
-              '2018-11-26T13:00:00+00:00',
-              '2018-12-03T13:00:00+00:00',
-              '2018-12-10T13:00:00+00:00',
+              '2018-10-18T12:00:00+00:00',
+              '2018-10-25T12:00:00+00:00',
+              '2018-11-01T12:00:00+00:00',
+              '2018-11-08T13:00:00+00:00',
+              '2018-11-15T13:00:00+00:00',
+              '2018-11-22T13:00:00+00:00',
+              '2018-11-29T13:00:00+00:00',
+              '2018-12-06T13:00:00+00:00',
+              '2018-12-13T13:00:00+00:00',
             ],
             owner: 'admin@foo.com',
           }, event1);
@@ -226,14 +240,15 @@ describe('Events Suite', function EventsSuite() {
 
           const precalculatedTime = Object.assign({
             start_time: [
-              '2018-10-22T12:00:00+00:00',
-              '2018-10-29T12:00:00+00:00',
-              '2018-11-05T13:00:00+00:00',
-              '2018-11-12T13:00:00+00:00',
-              '2018-11-19T13:00:00+00:00',
-              '2018-11-26T13:00:00+00:00',
-              '2018-12-03T13:00:00+00:00',
-              '2018-12-10T13:00:00+00:00',
+              '2018-10-18T12:00:00+00:00',
+              '2018-10-25T12:00:00+00:00',
+              '2018-11-01T12:00:00+00:00',
+              '2018-11-08T13:00:00+00:00',
+              '2018-11-15T13:00:00+00:00',
+              '2018-11-22T13:00:00+00:00',
+              '2018-11-29T13:00:00+00:00',
+              '2018-12-06T13:00:00+00:00',
+              '2018-12-13T13:00:00+00:00',
             ],
             owner: 'admin@foo.com',
           }, event1);
@@ -341,7 +356,8 @@ describe('Events Suite', function EventsSuite() {
 
           const precalculatedTime = Object.assign({
             start_time: [
-              '2018-11-19T13:00:00+00:00',
+              '2018-10-18T12:00:00+00:00',
+              '2018-11-15T13:00:00+00:00',
             ],
             owner: 'admin@foo.com',
           }, event1, update, { title: 'nom-nom' });
@@ -501,11 +517,13 @@ describe('Events Suite', function EventsSuite() {
   });
 
   describe('update tz', () => {
-    let eventId;
+    let eventIds;
 
     before('create event', async () => {
-      const { body } = await request(uri.create, { token: this.adminToken, event: event3 });
-      eventId = body.data.id;
+      eventIds = await Promise.all([
+        createEvent(event3),
+        createEvent(event4),
+      ]);
     });
 
     it('resolving single event returns UTC stamps', async () => {
@@ -515,8 +533,7 @@ describe('Events Suite', function EventsSuite() {
         endTime: now().add(6, 'months').toISOString(),
       });
 
-      const event = body.data.find(x => x.id === eventId);
-
+      const event = body.data.find(x => x.id === eventIds[0]);
       assert.deepEqual(event.attributes.start_time, [
         '2018-09-21T12:30:00+00:00',
         '2018-09-28T12:30:00+00:00',
@@ -532,10 +549,15 @@ describe('Events Suite', function EventsSuite() {
         '2018-12-07T12:30:00+00:00',
         '2018-12-14T12:30:00+00:00',
       ]);
+
+      const hw65 = body.data.find(x => x.id === eventIds[1]);
+      assert.deepEqual(hw65.attributes.start_time, [
+        '2018-10-29T12:00:00+00:00',
+      ]);
     });
 
     it('invoking update with tz adjusts timestamps', async () => {
-      await execFile('bin/update-events.js', {
+      await execFile('bin/update-events.js', ['--ver', '2'], {
         cwd: process.cwd(),
         timeout: 20000,
       });
@@ -546,7 +568,7 @@ describe('Events Suite', function EventsSuite() {
         endTime: now().add(6, 'months').toISOString(),
       });
 
-      const event = body.data.find(x => x.id === eventId);
+      const event = body.data.find(x => x.id === eventIds[0]);
 
       assert.deepEqual(event.attributes.start_time, [
         '2018-09-21T12:30:00+00:00',
@@ -563,6 +585,11 @@ describe('Events Suite', function EventsSuite() {
         '2018-12-07T13:30:00+00:00',
         '2018-12-14T13:30:00+00:00',
         '2018-12-21T13:30:00+00:00',
+      ]);
+
+      const hw65 = body.data.find(x => x.id === eventIds[1]);
+      assert.deepEqual(hw65.attributes.start_time, [
+        '2018-10-29T12:00:00+00:00',
       ]);
     });
   });

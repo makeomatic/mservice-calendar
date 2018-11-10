@@ -1,12 +1,12 @@
 /**
  * services/storage.js
- * @flow
  */
 
 const Promise = require('bluebird');
 const pick = require('lodash/pick');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const Errors = require('common-errors');
+const { MomentTimezone } = require('../zones');
 const {
   EVENT_TABLE,
   EVENT_SPANS_TABLE,
@@ -22,23 +22,29 @@ const momentFormat = 'YYYY-MM-DD HH:mm:ss';
 const overlapError = (a, b) => (
   `You want to create an event starting at ${a}, but it overlaps with another one at ${b}`
 );
+const zone = new MomentTimezone(moment.tz.guess());
 
 class Storage {
-  log: Object;
-
-  client: any;
-
-  constructor(knex: any, logger: Object) {
+  constructor(knex, logger, version) {
     this.client = knex;
     this.log = logger;
+    this.version = version;
   }
 
-  static generateSpans(id: number, data: Object): Array<Object> {
+  static generateSpans(id, data) {
     const { parsedRRule, duration, owner } = data;
     const events = parsedRRule.all();
+    const now = Date.now();
+    const offset = zone.offset(now);
     return events.map((span) => {
-      const startTime = span.toISOString();
-      const endTime = moment(span).add(duration, 'minutes').toISOString();
+      const start = moment.utc(span);
+
+      if (parsedRRule.options.tzid) {
+        start.utcOffset(offset, true);
+      }
+
+      const startTime = start.toISOString();
+      const endTime = start.add(duration, 'minutes').toISOString();
 
       return {
         event_id: id,
@@ -51,7 +57,7 @@ class Storage {
   }
 
   // this is already normalized
-  static HandleOverlap(e: Object) {
+  static HandleOverlap(e) {
     // detail: 'Key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00"))
     // conflicts with existing key (owner, period)=(admin@foo.com, ["2016-09-26 21:00:00","2016-09-26 21:30:00")).',
     const [one, , two] = e.detail.match(timestampRegexp);
@@ -67,7 +73,7 @@ class Storage {
    * Inserts event data into the PGSQL database
    * Expands
    */
-  createEvent(data: Object) {
+  createEvent(data) {
     // won't be more than 365 e vents due to constraints we have
     const knex = this.client;
     const resultingEvent = pick(data, EVENT_FIELDS);
@@ -79,7 +85,10 @@ class Storage {
         const result = await knex(EVENT_TABLE)
           .transacting(trx)
           .returning('id')
-          .insert(resultingEvent)
+          .insert({
+            ...resultingEvent,
+            version: this.version,
+          })
           .spread((id) => {
             this.log.debug('created event', id);
 
@@ -88,7 +97,7 @@ class Storage {
 
             // generate spans
             const spans = Storage.generateSpans(id, data);
-            this.log.debug('generated spans %d', spans.length);
+            this.log.debug('generated spans %j', spans);
 
             return knex(EVENT_SPANS_TABLE)
               .transacting(trx)
@@ -107,7 +116,7 @@ class Storage {
     });
   }
 
-  updateEventMeta(id: number, data: Object, trx: Object | boolean = false) {
+  updateEventMeta(id, data, trx) {
     const knex = this.client;
 
     // query builder
@@ -131,8 +140,9 @@ class Storage {
       });
   }
 
-  updateEvent(id: number, owner: string, data: Object) {
+  updateEvent(id, owner, data) {
     data.owner = owner;
+    data.version = this.version;
 
     const knex = this.client;
     const spans = Storage.generateSpans(id, data);
@@ -163,7 +173,7 @@ class Storage {
     });
   }
 
-  getEvent(id: number) {
+  getEvent(id) {
     return this.client(EVENT_TABLE).where({ id }).then((results) => {
       if (results.length > 0) {
         return results[0];
@@ -173,7 +183,7 @@ class Storage {
     });
   }
 
-  getEvents(filter: Object) {
+  getEvents(filter) {
     const { owner, tags, hosts } = filter;
     const knex = this.client;
 
@@ -226,7 +236,7 @@ class Storage {
   }
 
   // EVENT_SPANS_TABLE will be deleted using foreign key CASCADE on DELETE
-  removeEvent(filter: Object) {
+  removeEvent(filter) {
     const { id, owner } = filter;
     const knex = this.client;
     return knex(EVENT_TABLE).where({ id, owner }).del();

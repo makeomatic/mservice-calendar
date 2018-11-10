@@ -2892,10 +2892,54 @@ eslint-visitor-keys@^1.0.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#3f3180fb2e291017716acb4c9d6d5b5c34a6a81d"
   integrity sha512-qzm/XxIbxm/FHyH341ZrbnMUpe+5Bocte9xkmFMzPMjRaZMcXww+MpBptFvtU+79L362nqiLhekCxCxDPaUMBQ==
 
-eslint@5.x.x, eslint@^5.8.0:
+eslint@5.x.x:
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-5.8.0.tgz#91fbf24f6e0471e8fdf681a4d9dd1b2c9f28309b"
   integrity sha512-Zok6Bru3y2JprqTNm14mgQ15YQu/SMDkWdnmHfFg770DIUlmMFd/gqqzCHekxzjHZJxXv3tmTpH0C1icaYJsRQ==
+  dependencies:
+    "@babel/code-frame" "^7.0.0"
+    ajv "^6.5.3"
+    chalk "^2.1.0"
+    cross-spawn "^6.0.5"
+    debug "^4.0.1"
+    doctrine "^2.1.0"
+    eslint-scope "^4.0.0"
+    eslint-utils "^1.3.1"
+    eslint-visitor-keys "^1.0.0"
+    espree "^4.0.0"
+    esquery "^1.0.1"
+    esutils "^2.0.2"
+    file-entry-cache "^2.0.0"
+    functional-red-black-tree "^1.0.1"
+    glob "^7.1.2"
+    globals "^11.7.0"
+    ignore "^4.0.6"
+    imurmurhash "^0.1.4"
+    inquirer "^6.1.0"
+    is-resolvable "^1.1.0"
+    js-yaml "^3.12.0"
+    json-stable-stringify-without-jsonify "^1.0.1"
+    levn "^0.3.0"
+    lodash "^4.17.5"
+    minimatch "^3.0.4"
+    mkdirp "^0.5.1"
+    natural-compare "^1.4.0"
+    optionator "^0.8.2"
+    path-is-inside "^1.0.2"
+    pluralize "^7.0.0"
+    progress "^2.0.0"
+    regexpp "^2.0.1"
+    require-uncached "^1.0.3"
+    semver "^5.5.1"
+    strip-ansi "^4.0.0"
+    strip-json-comments "^2.0.1"
+    table "^5.0.2"
+    text-table "^0.2.0"
+
+eslint@^5.9.0:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-5.9.0.tgz#b234b6d15ef84b5849c6de2af43195a2d59d408e"
+  integrity sha512-g4KWpPdqN0nth+goDNICNXGfJF7nNnepthp46CAlJoJtC5K/cLu3NgCM3AHu1CkJ5Hzt9V0Y0PBAO6Ay/gGb+w==
   dependencies:
     "@babel/code-frame" "^7.0.0"
     ajv "^6.5.3"
@@ -5463,10 +5507,10 @@ luxon@^1.3.3:
   resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.4.5.tgz#88f6d4901f61bcff26cfbb66b54f464c9f759b82"
   integrity sha512-l2zRBzQt47/OLD//V5odz5JFIvReS+7dmt0KtP6R+jMymki1XuU+hA8loyUvwLj6714HD79cokPtOF2TO8nl5w==
 
-luxon@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.5.0.tgz#bbb20bc4d3a97f44798e2f0fe13bf5fc2b8784ab"
-  integrity sha512-9IfJ0a5jA3poJSQnamaoOdPG0ulYk1JUI5IYmEdUhUc8dto4t6TVTu+oIM7fpSYy01GwUAA8kGUZMVe7Qx9Y+Q==
+luxon@^1.6.2:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.6.2.tgz#1328a7eefd81def7f452a120ef49c97955fe056e"
+  integrity sha512-vZP3vVTK0aH3W6zleLYefctzpKaUaVtdF7G/WblRrf/lbEASMuV5ZlPR+2GBvaUEuD0TAf/r5NB98s3ER4shnQ==
 
 macos-release@^1.0.0:
   version "1.1.0"

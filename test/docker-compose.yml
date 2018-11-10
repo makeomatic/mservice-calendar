@@ -34,7 +34,7 @@ services:
       - ms-users
     command: tail -f /dev/null
     volumes:
-      - ${PWD}:/src
+      - ${PWD}:/src:cached
     working_dir: /src
     environment:
       NODE_ENV: "test"

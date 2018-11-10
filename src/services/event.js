@@ -27,10 +27,10 @@ class Event {
 
   static parseRRule(data) {
     const opts = RRule.parseString(data.rrule);
-    const now = moment();
+    // const now = moment();
 
     // check frequency
-    assert.ifError(BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
+    assert(!BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
 
     // make sure count is not > 365 and if not provided set to MAX the event count
     if (!opts.count || opts.count > 365) {
@@ -42,8 +42,8 @@ class Event {
 
     // ensure that until > dtstart and is not too far in the past
     assert(until.isAfter(dtstart), 'DTSTART must be before UNTIL');
-    assert(until.subtract(1, 'year').isBefore(now), 'UNTIL must be within a year from now');
-    assert(dtstart.add(1, 'year').isAfter(now), 'DTSTART must be without the last year');
+    // assert(until.subtract(1, 'year').isBefore(now), 'UNTIL must be within a year from now');
+    // assert(dtstart.add(1, 'year').isAfter(now), 'DTSTART must be within the last year');
 
     const { tz } = data;
     if (tz) {
@@ -62,6 +62,7 @@ class Event {
       opts.byhour = adjustedStartDate.hours();
       opts.byminute = adjustedStartDate.minute();
       opts.bysecond = 0;
+      opts.dtstart = adjustedStartDate.startOf('day').toDate();
     }
 
     // do not cache RRule, we are not likely to work with same events
