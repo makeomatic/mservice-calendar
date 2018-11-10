@@ -6,7 +6,7 @@
 const AMQPTransport = require('@microfleet/transport-amqp');
 const omit = require('lodash/omit');
 const Knex = require('knex');
-const config = require('ms-conf').get('/', { env: process.env.NODE_ENV });
+const config = require('../lib/config').get('/', { env: process.env.NODE_ENV });
 const { EVENT_TABLE, EVENT_SPANS_TABLE } = require('../lib/constants');
 const Storage = require('../lib/services/storage');
 const Event = require('../lib/services/event');
