@@ -30,7 +30,7 @@ class Event {
     // const now = moment();
 
     // check frequency
-    assert.ifError(BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
+    assert(!BannedRRuleFreq[opts.freq], 'FREQ must be one of WEEKLY, MONTHLY or undefined');
 
     // make sure count is not > 365 and if not provided set to MAX the event count
     if (!opts.count || opts.count > 365) {
@@ -62,7 +62,7 @@ class Event {
       opts.byhour = adjustedStartDate.hours();
       opts.byminute = adjustedStartDate.minute();
       opts.bysecond = 0;
-      opts.dtstart = adjustedStartDate.startOf('day').utc().toDate();
+      opts.dtstart = adjustedStartDate.startOf('day').toDate();
     }
 
     // do not cache RRule, we are not likely to work with same events

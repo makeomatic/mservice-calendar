@@ -7,7 +7,6 @@ const AMQPTransport = require('@microfleet/transport-amqp');
 const omit = require('lodash/omit');
 const Knex = require('knex');
 const config = require('ms-conf').get('/', { env: process.env.NODE_ENV });
-const { argv } = require('yargs');
 const { EVENT_TABLE, EVENT_SPANS_TABLE } = require('../lib/constants');
 const Storage = require('../lib/services/storage');
 const Event = require('../lib/services/event');
@@ -16,6 +15,21 @@ const amqpConfig = omit(config.amqp.transport, ['queue', 'neck', 'listen', 'onCo
 const knex = Knex(config.knex);
 
 (async () => {
+  const { argv } = require('yargs')
+    .option('ver', {
+      type: 'number',
+      default: config.eventVersion,
+      required: true,
+    })
+    .option('dryRun', {
+      type: 'boolean',
+      default: false,
+    })
+    .option('dropIndex', {
+      type: 'boolean',
+      default: false,
+    });
+
   const printedWarnings = {};
   const amqp = await AMQPTransport.connect(amqpConfig);
   const getMetadata = `${config.users.prefix}.${config.users.postfix.getMetadata}`;
@@ -27,11 +41,11 @@ const knex = Knex(config.knex);
   try {
     const rows = await knex.select(['id', 'owner', 'rrule', 'duration'])
       .from(EVENT_TABLE)
-      .where('version', '<', config.eventVersion);
+      .where('version', '<', argv.ver);
 
-    console.info('Found %d rows', rows.length);
+    console.info('Found %d rows, config: %j', rows.length, argv);
 
-    if (!argv.dryRun) {
+    if (argv.dropIndex) {
       await knex.raw(
         `ALTER TABLE ${EVENT_SPANS_TABLE} DROP CONSTRAINT owner_period_not_overlaps`
       );
@@ -72,8 +86,8 @@ const knex = Knex(config.knex);
   } finally {
     await amqp.close();
 
-    if (!argv.dryRun) {
-      knex.raw(
+    if (argv.dropIndex) {
+      await knex.raw(
         `ALTER TABLE ${EVENT_SPANS_TABLE} ADD CONSTRAINT owner_period_not_overlaps`
         + ' EXCLUDE USING gist (owner WITH =, period WITH &&)'
       );

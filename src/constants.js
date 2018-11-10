@@ -18,6 +18,5 @@ module.exports = {
     'link',
     'tags',
     'tz',
-    'version',
   ],
 };
