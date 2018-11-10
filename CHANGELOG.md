@@ -1,3 +1,10 @@
+## [6.0.2](https://github.com/makeomatic/mservice-calendar/compare/v6.0.1...v6.0.2) (2018-11-10)
+
+
+### Bug Fixes
+
+* set version number ([1f4fde4](https://github.com/makeomatic/mservice-calendar/commit/1f4fde4))
+
 ## [6.0.1](https://github.com/makeomatic/mservice-calendar/compare/v6.0.0...v6.0.1) (2018-11-10)
 
 
