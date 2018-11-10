@@ -6,7 +6,7 @@
   "scripts": {
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",
     "compile": "babel -d ./lib ./src",
-    "docker-release": "./docker-release.sh",
+    "docker-release": "mdep docker release",
     "lint": "eslint ./src",
     "prepublish": "yarn compile",
     "semantic-release": "semantic-release",
@@ -92,5 +92,11 @@
       "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS",
       "prepare-commit-msg": "./node_modules/@makeomatic/deploy/git-hooks/prepare-commit-msg $HUSKY_GIT_PARAMS"
     }
-  }
+  },
+  "files": [
+    "schemas/",
+    "lib/",
+    "src/",
+    "bin/"
+  ]
 }

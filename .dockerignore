@@ -40,7 +40,6 @@ Makefile
 .semaphore-cache
 Dockerfile*
 .istanbul.yml
-docker-release.sh
 .editorconfig
 .eslintignore
 .eslintrc
