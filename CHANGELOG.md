@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/makeomatic/mservice-calendar/compare/v6.0.0...v6.0.1) (2018-11-10)
+
+
+### Bug Fixes
+
+* events daylight ([#43](https://github.com/makeomatic/mservice-calendar/issues/43)) ([ee51ab7](https://github.com/makeomatic/mservice-calendar/commit/ee51ab7))
+
 # [6.0.0](https://github.com/makeomatic/mservice-calendar/compare/v5.0.1...v6.0.0) (2018-11-10)
 
 
