@@ -13,8 +13,7 @@
           "title",
           "description",
           "rrule",
-          "duration",
-          "tz"
+          "duration"
         ],
         "not": {
           "required": [

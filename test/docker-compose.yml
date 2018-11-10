@@ -1,20 +1,6 @@
 version: '2'
 
 services:
-  tester:
-    image: makeomatic/node:10.12.0-tester
-    depends_on:
-      - postgres
-      - rabbitmq
-      - ms-users
-    command: tail -f /dev/null
-    volumes:
-      - ${PWD}:/src
-    working_dir: /src
-    environment:
-      NODE_ENV: "test"
-      DEBUG: ${DEBUG}
-
   redis:
     hostname: redis
     image: makeomatic/redis-cluster:3.2.9
@@ -39,3 +25,17 @@ services:
     image: postgres:10-alpine
     volumes:
       - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
+
+  tester:
+    image: makeomatic/node:10.13.0-tester
+    depends_on:
+      - postgres
+      - rabbitmq
+      - ms-users
+    command: tail -f /dev/null
+    volumes:
+      - ${PWD}:/src
+    working_dir: /src
+    environment:
+      NODE_ENV: "test"
+      DEBUG: ${DEBUG}

@@ -1,3 +1,1 @@
-const service = require('./calendar');
-
-module.exports = exports = service;
+module.exports = require('./calendar');

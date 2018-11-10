@@ -11,5 +11,18 @@
       { "type": "major", "release": "major" },
       { "type": "breaking", "release": "major" }
     ]
-  }
+  },
+  "prepare": [
+    "@semantic-release/changelog",
+    "@semantic-release/npm",
+    "@semantic-release/git"
+  ],
+  "publish": [
+    "@semantic-release/npm",
+    "@semantic-release/github",
+    {
+      "path": "@semantic-release/exec",
+      "cmd": "./docs.sh"
+    }
+  ]
 }

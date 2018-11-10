@@ -1,10 +1,12 @@
 const assert = require('assert');
 const moment = require('moment-timezone');
 const { omit } = require('lodash');
-const request = require('../helpers/request');
-const { login } = require('../helpers/users');
+const { promisify } = require('util');
+const execFile = promisify(require('child_process').execFile);
 
 describe('Events Suite', function EventsSuite() {
+  const request = require('../helpers/request');
+  const { login } = require('../helpers/users');
   const Calendar = require('../../src');
   const { EVENT_TABLE } = require('../../src/constants');
   const calendar = new Calendar(global.SERVICES);
@@ -58,6 +60,13 @@ describe('Events Suite', function EventsSuite() {
     rrule: 'FREQ=WEEKLY;DTSTART=20180920T123000;UNTIL=20181221T090000;WKST=SU;BYDAY=MO',
     duration: 30,
     tz: 'America/New_York',
+  };
+
+  const event3 = {
+    title: 'no-tz-event',
+    description: 'recurring',
+    rrule: 'FREQ=WEEKLY;DTSTART=20180920T123000;UNTIL=20181221T090000;WKST=SU;BYDAY=FR',
+    duration: 30,
   };
 
   const update = {
@@ -126,8 +135,8 @@ describe('Events Suite', function EventsSuite() {
           assert.equal(body.error, 'Bad Request');
           assert.equal(
             body.message,
-            'You want to create an event starting at Mon, Sep 24, 2018 4:00 PM, '
-          + 'but it overlaps with another one at Mon, Sep 24, 2018 4:00 PM'
+            'You want to create an event starting at Mon, Sep 24, 2018 12:00 PM, '
+          + 'but it overlaps with another one at Mon, Sep 24, 2018 12:00 PM'
           );
           assert.equal(body.name, 'ValidationError');
 
@@ -175,14 +184,14 @@ describe('Events Suite', function EventsSuite() {
 
           const precalculatedTime = Object.assign({
             start_time: [
-              '2018-10-22T16:00:00+00:00',
-              '2018-10-29T16:00:00+00:00',
-              '2018-11-05T17:00:00+00:00',
-              '2018-11-12T17:00:00+00:00',
-              '2018-11-19T17:00:00+00:00',
-              '2018-11-26T17:00:00+00:00',
-              '2018-12-03T17:00:00+00:00',
-              '2018-12-10T17:00:00+00:00',
+              '2018-10-22T12:00:00+00:00',
+              '2018-10-29T12:00:00+00:00',
+              '2018-11-05T13:00:00+00:00',
+              '2018-11-12T13:00:00+00:00',
+              '2018-11-19T13:00:00+00:00',
+              '2018-11-26T13:00:00+00:00',
+              '2018-12-03T13:00:00+00:00',
+              '2018-12-10T13:00:00+00:00',
             ],
             owner: 'admin@foo.com',
           }, event1);
@@ -217,14 +226,14 @@ describe('Events Suite', function EventsSuite() {
 
           const precalculatedTime = Object.assign({
             start_time: [
-              '2018-10-22T16:00:00+00:00',
-              '2018-10-29T16:00:00+00:00',
-              '2018-11-05T17:00:00+00:00',
-              '2018-11-12T17:00:00+00:00',
-              '2018-11-19T17:00:00+00:00',
-              '2018-11-26T17:00:00+00:00',
-              '2018-12-03T17:00:00+00:00',
-              '2018-12-10T17:00:00+00:00',
+              '2018-10-22T12:00:00+00:00',
+              '2018-10-29T12:00:00+00:00',
+              '2018-11-05T13:00:00+00:00',
+              '2018-11-12T13:00:00+00:00',
+              '2018-11-19T13:00:00+00:00',
+              '2018-11-26T13:00:00+00:00',
+              '2018-12-03T13:00:00+00:00',
+              '2018-12-10T13:00:00+00:00',
             ],
             owner: 'admin@foo.com',
           }, event1);
@@ -332,7 +341,7 @@ describe('Events Suite', function EventsSuite() {
 
           const precalculatedTime = Object.assign({
             start_time: [
-              '2018-11-19T17:00:00+00:00',
+              '2018-11-19T13:00:00+00:00',
             ],
             owner: 'admin@foo.com',
           }, event1, update, { title: 'nom-nom' });
@@ -489,5 +498,72 @@ describe('Events Suite', function EventsSuite() {
           return null;
         })
     ));
+  });
+
+  describe('update tz', () => {
+    let eventId;
+
+    before('create event', async () => {
+      const { body } = await request(uri.create, { token: this.adminToken, event: event3 });
+      eventId = body.data.id;
+    });
+
+    it('resolving single event returns UTC stamps', async () => {
+      const { body } = await request(uri.list, {
+        owner: 'admin@foo.com',
+        startTime: now().subtract(3, 'months').toISOString(),
+        endTime: now().add(6, 'months').toISOString(),
+      });
+
+      const event = body.data.find(x => x.id === eventId);
+
+      assert.deepEqual(event.attributes.start_time, [
+        '2018-09-21T12:30:00+00:00',
+        '2018-09-28T12:30:00+00:00',
+        '2018-10-05T12:30:00+00:00',
+        '2018-10-12T12:30:00+00:00',
+        '2018-10-19T12:30:00+00:00',
+        '2018-10-26T12:30:00+00:00',
+        '2018-11-02T12:30:00+00:00',
+        '2018-11-09T12:30:00+00:00',
+        '2018-11-16T12:30:00+00:00',
+        '2018-11-23T12:30:00+00:00',
+        '2018-11-30T12:30:00+00:00',
+        '2018-12-07T12:30:00+00:00',
+        '2018-12-14T12:30:00+00:00',
+      ]);
+    });
+
+    it('invoking update with tz adjusts timestamps', async () => {
+      await execFile('bin/update-events.js', {
+        cwd: process.cwd(),
+        timeout: 20000,
+      });
+
+      const { body } = await request(uri.list, {
+        owner: 'admin@foo.com',
+        startTime: now().subtract(3, 'months').toISOString(),
+        endTime: now().add(6, 'months').toISOString(),
+      });
+
+      const event = body.data.find(x => x.id === eventId);
+
+      assert.deepEqual(event.attributes.start_time, [
+        '2018-09-21T12:30:00+00:00',
+        '2018-09-28T12:30:00+00:00',
+        '2018-10-05T12:30:00+00:00',
+        '2018-10-12T12:30:00+00:00',
+        '2018-10-19T12:30:00+00:00',
+        '2018-10-26T12:30:00+00:00',
+        '2018-11-02T12:30:00+00:00',
+        '2018-11-09T13:30:00+00:00',
+        '2018-11-16T13:30:00+00:00',
+        '2018-11-23T13:30:00+00:00',
+        '2018-11-30T13:30:00+00:00',
+        '2018-12-07T13:30:00+00:00',
+        '2018-12-14T13:30:00+00:00',
+        '2018-12-21T13:30:00+00:00',
+      ]);
+    });
   });
 });

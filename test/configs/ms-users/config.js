@@ -36,6 +36,7 @@ module.exports = {
         lastName: 'Admin',
         roles: ['admin'],
         stationGroup: 'group01',
+        stationTimezone: 'US/Eastern',
       },
     },
     {
@@ -46,6 +47,7 @@ module.exports = {
         lastName: 'Admin',
         roles: ['admin'],
         stationGroup: 'group02',
+        stationTimezone: 'US/Central',
       },
     },
     {

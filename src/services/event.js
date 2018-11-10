@@ -5,6 +5,7 @@ const assert = require('assert');
 const is = require('is');
 const { RRule } = require('rrule');
 const { coroutine } = require('../utils/getMethods');
+const { zones: cachedZones, MomentTimezone } = require('../zones');
 
 const zones = Object.create(null);
 const aggregateZones = (acc, zone) => { acc[zone] = true; return acc; };
@@ -47,7 +48,20 @@ class Event {
     const { tz } = data;
     if (tz) {
       assert(zones[tz], `${tz} must be one of the supported by moment-timezone`);
-      opts.tzid = tz;
+      if (cachedZones[tz]) {
+        opts.tzid = cachedZones[tz];
+      } else {
+        opts.tzid = cachedZones[tz] = new MomentTimezone(tz);
+      }
+
+      // set to the specified offset
+      const adjustedStartDate = dtstart
+        .utcOffset(opts.tzid.offset(dtstart.valueOf()));
+
+      // re-adjust based on start date
+      opts.byhour = adjustedStartDate.hours();
+      opts.byminute = adjustedStartDate.minute();
+      opts.bysecond = 0;
     }
 
     // do not cache RRule, we are not likely to work with same events
