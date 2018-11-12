@@ -1,3 +1,10 @@
+## [6.0.3](https://github.com/makeomatic/mservice-calendar/compare/v6.0.2...v6.0.3) (2018-11-12)
+
+
+### Bug Fixes
+
+* prev day start ([cde48ce](https://github.com/makeomatic/mservice-calendar/commit/cde48ce))
+
 ## [6.0.2](https://github.com/makeomatic/mservice-calendar/compare/v6.0.1...v6.0.2) (2018-11-10)
 
 
