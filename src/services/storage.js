@@ -36,9 +36,9 @@ class Storage {
     const events = parsedRRule.all();
     const now = Date.now();
     const offset = zone.offset(now);
+
     return events.map((span) => {
       const start = moment.utc(span);
-
       if (parsedRRule.options.tzid) {
         start.utcOffset(offset, true);
       }

@@ -62,6 +62,11 @@ class Event {
       opts.byhour = adjustedStartDate.hours();
       opts.byminute = adjustedStartDate.minute();
       opts.bysecond = 0;
+
+      if (opts.byhour === 0) {
+        adjustedStartDate.subtract(1, 'day');
+      }
+
       opts.dtstart = adjustedStartDate.startOf('day').toDate();
     }
 
