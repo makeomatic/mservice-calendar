@@ -56,7 +56,7 @@ class Event {
 
       opts.bysecond = 0;
 
-      if (!opts.byhour) {
+      if (opts.byhour == null) {
         dtstart.utcOffset(opts.tzid.offset(dtstart.valueOf()));
 
         // re-adjust based on start date
