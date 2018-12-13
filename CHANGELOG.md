@@ -1,3 +1,10 @@
+## [6.0.4](https://github.com/makeomatic/mservice-calendar/compare/v6.0.3...v6.0.4) (2018-12-13)
+
+
+### Bug Fixes
+
+* handle rrules with byhour with simplified algo ([#44](https://github.com/makeomatic/mservice-calendar/issues/44)) ([0c1207e](https://github.com/makeomatic/mservice-calendar/commit/0c1207e))
+
 ## [6.0.3](https://github.com/makeomatic/mservice-calendar/compare/v6.0.2...v6.0.3) (2018-11-12)
 
 
