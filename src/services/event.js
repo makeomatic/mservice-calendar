@@ -37,8 +37,8 @@ class Event {
       opts.count = 365;
     }
 
-    const until = moment(opts.until);
-    const dtstart = moment(opts.dtstart);
+    const until = moment.utc(opts.until);
+    const dtstart = moment.utc(opts.dtstart);
 
     // ensure that until > dtstart and is not too far in the past
     assert(until.isAfter(dtstart), 'DTSTART must be before UNTIL');
@@ -54,20 +54,21 @@ class Event {
         opts.tzid = cachedZones[tz] = new MomentTimezone(tz);
       }
 
-      // set to the specified offset
-      const adjustedStartDate = dtstart
-        .utcOffset(opts.tzid.offset(dtstart.valueOf()));
-
-      // re-adjust based on start date
-      opts.byhour = adjustedStartDate.hours();
-      opts.byminute = adjustedStartDate.minute();
       opts.bysecond = 0;
 
-      if (opts.byhour === 0) {
-        adjustedStartDate.subtract(1, 'day');
-      }
+      if (!opts.byhour) {
+        dtstart.utcOffset(opts.tzid.offset(dtstart.valueOf()));
 
-      opts.dtstart = adjustedStartDate.startOf('day').toDate();
+        // re-adjust based on start date
+        opts.byhour = dtstart.hours();
+        opts.byminute = dtstart.minute();
+
+        if (opts.byhour === 0) {
+          dtstart.subtract(1, 'day');
+        }
+
+        opts.dtstart = dtstart.startOf('day').toDate();
+      }
     }
 
     // do not cache RRule, we are not likely to work with same events
