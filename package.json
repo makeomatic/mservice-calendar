@@ -1,7 +1,7 @@
 {
   "name": "mservice-calendar",
   "description": "Calendar microservice",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "main": "./lib/index.js",
   "scripts": {
     "doc": "cd schemas && apidoc -i ./../src/actions -v -o ./../docs",

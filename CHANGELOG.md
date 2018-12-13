@@ -1,3 +1,10 @@
+## [6.0.5](https://github.com/makeomatic/mservice-calendar/compare/v6.0.4...v6.0.5) (2018-12-13)
+
+
+### Bug Fixes
+
+* false positive condition for 0 ([#45](https://github.com/makeomatic/mservice-calendar/issues/45)) ([e8d16de](https://github.com/makeomatic/mservice-calendar/commit/e8d16de))
+
 ## [6.0.4](https://github.com/makeomatic/mservice-calendar/compare/v6.0.3...v6.0.4) (2018-12-13)
 
 
