@@ -43,6 +43,23 @@ describe('rfx-post-single hook test suite', function suite() {
     return null;
   }));
 
+  before('create byhour event', () => request(uri.create, {
+    token: this.token,
+    event: {
+      title: 'Test byhour event',
+      description: 'Byhour event description',
+      tags: ['music', 'jazz'],
+      hosts: ['dj felipe'],
+      rrule:
+        'DTSTART;TZID=US/Eastern:20190201T000000\nRRULE:WKST=SU;BYHOUR=12;BYMINUTE=0;BYSECOND=0;FREQ=WEEKLY;BYDAY=FR;UNTIL=21190525T180000',
+      duration: 120,
+      tz: 'US/Eastern',
+    },
+  }).then((response) => {
+    this.byHourEventId = response.body.data.id;
+    return null;
+  }));
+
   describe('event/single', () => {
     it('return aditional attributes', () => request(uri.single, {
       id: this.eventId,
@@ -56,6 +73,27 @@ describe('rfx-post-single hook test suite', function suite() {
 
       // Additional attributes
       assert.ok(body.data.attributes.start_time);
+
+      return null;
+    }));
+
+    it('returns correct spans for legacy timezone events', () => request(uri.single, {
+      id: this.byHourEventId,
+      token: this.token,
+    }).then((response) => {
+      const { body, statusCode } = response;
+
+      assert.equal(statusCode, 200, JSON.stringify(body));
+      assert.ok(body.data);
+      assert.ok(body.data.id);
+
+      // Additional attributes
+      assert.ok(body.data.attributes.start_time);
+      assert.strictEqual(body.data.attributes.start_time.length, 3);
+      body.data.attributes.start_time.forEach(startDate => assert.ok(startDate));
+
+      // does not include internal non-enum properties
+      assert.ok(!body.data.attributes.parsedRRule);
 
       return null;
     }));
