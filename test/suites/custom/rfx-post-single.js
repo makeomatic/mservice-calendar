@@ -34,7 +34,7 @@ describe('rfx-post-single hook test suite', function suite() {
       tags: ['music', 'jazz'],
       hosts: ['dj felipe'],
       rrule:
-          'DTSTART=20180709T120000Z;UNTIL=20181201T140000Z;WKST=SU;FREQ=WEEKLY;BYDAY=MO',
+          'DTSTART=20180709T120000Z;UNTIL=20501201T140000Z;WKST=SU;FREQ=WEEKLY;BYDAY=MO',
       duration: 120,
       tz: 'Europe/London',
     },
@@ -51,7 +51,7 @@ describe('rfx-post-single hook test suite', function suite() {
       tags: ['music', 'jazz'],
       hosts: ['dj felipe'],
       rrule:
-        'DTSTART;TZID=US/Eastern:20190201T000000\nRRULE:WKST=SU;BYHOUR=12;BYMINUTE=0;BYSECOND=0;FREQ=WEEKLY;BYDAY=FR;UNTIL=21190525T180000',
+        'DTSTART;TZID=US/Eastern:20190201T000000\nRRULE:WKST=SU;BYHOUR=12;BYMINUTE=0;BYSECOND=0;FREQ=WEEKLY;BYDAY=FR;UNTIL=20500525T180000',
       duration: 120,
       tz: 'US/Eastern',
     },
