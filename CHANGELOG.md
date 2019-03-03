@@ -1,3 +1,12 @@
+## [6.0.6](https://github.com/makeomatic/mservice-calendar/compare/v6.0.5...v6.0.6) (2019-03-03)
+
+
+### Bug Fixes
+
+* **events:** deterministic start_time order ([#48](https://github.com/makeomatic/mservice-calendar/issues/48)) ([06dd59a](https://github.com/makeomatic/mservice-calendar/commit/06dd59a))
+* **single:** parsing rrule for legacy timezones ([#46](https://github.com/makeomatic/mservice-calendar/issues/46)) ([da51830](https://github.com/makeomatic/mservice-calendar/commit/da51830))
+* **tests:** uxtend expired test events ([#47](https://github.com/makeomatic/mservice-calendar/issues/47)) ([9815425](https://github.com/makeomatic/mservice-calendar/commit/9815425))
+
 ## [6.0.5](https://github.com/makeomatic/mservice-calendar/compare/v6.0.4...v6.0.5) (2018-12-13)
 
 
