@@ -203,7 +203,7 @@ class Storage {
         'hosts',
         'tz',
         `${EVENT_TABLE}.owner`,
-        knex.raw(`array_to_json(array_agg("${EVENT_SPANS_TABLE}"."start_time")) as start_time`),
+        knex.raw(`array_to_json(array_agg("${EVENT_SPANS_TABLE}"."start_time" ORDER BY "${EVENT_SPANS_TABLE}"."start_time" ASC)) as start_time`),
       ])
       .from(EVENT_TABLE)
       .joinRaw((`INNER JOIN ${EVENT_SPANS_TABLE} on (`
