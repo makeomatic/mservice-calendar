@@ -1,3 +1,10 @@
+## [6.0.7](https://github.com/makeomatic/mservice-calendar/compare/v6.0.6...v6.0.7) (2019-03-06)
+
+
+### Bug Fixes
+
+* upgrade node ([e04921e](https://github.com/makeomatic/mservice-calendar/commit/e04921e))
+
 ## [6.0.6](https://github.com/makeomatic/mservice-calendar/compare/v6.0.5...v6.0.6) (2019-03-03)
 
 
