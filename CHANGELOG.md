@@ -1,3 +1,10 @@
+## [6.0.8](https://github.com/makeomatic/mservice-calendar/compare/v6.0.7...v6.0.8) (2019-03-07)
+
+
+### Bug Fixes
+
+* update deps & audit log ([c02e01c](https://github.com/makeomatic/mservice-calendar/commit/c02e01c))
+
 ## [6.0.7](https://github.com/makeomatic/mservice-calendar/compare/v6.0.6...v6.0.7) (2019-03-06)
 
 
