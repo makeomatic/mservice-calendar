@@ -36,9 +36,9 @@
     "bunyan": "^1.8.9",
     "common-errors": "^1.0.0",
     "firebase-admin": "^5.12.0",
-    "hapi": "^17.7.0",
+    "hapi": "^18.1.0",
     "is": "^3.2.1",
-    "knex": "^0.15.2",
+    "knex": "^0.16.3",
     "lodash": "^4.17.2",
     "luxon": "^1.6.2",
     "moment": "^2.18.1",
@@ -49,7 +49,7 @@
     "stdout-stream": "^1.4.0",
     "uid2": "0.0.3",
     "uuid": "^3.0.1",
-    "yargs": "^12.0.2"
+    "yargs": "^13.2.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
@@ -76,7 +76,7 @@
     "hash-files": "^1.1.1",
     "json": "^9.0.6",
     "mime-types": "^2.1.15",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.2",
     "nyc": "^13.1.0",
     "request": "^2.81.0",
     "request-promise": "^4.2.0",

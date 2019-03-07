@@ -27,7 +27,7 @@ services:
       - ${PWD}/test/configs/pg:/docker-entrypoint-initdb.d/
 
   tester:
-    image: makeomatic/node:10.13.0-tester
+    image: makeomatic/node:10.15.3-tester
     depends_on:
       - postgres
       - rabbitmq

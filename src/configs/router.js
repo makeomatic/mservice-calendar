@@ -14,7 +14,7 @@ exports.router = {
   extensions: {
     enabled: ['postValidate', 'postRequest', 'preRequest', 'preResponse'],
     register: [
-      routerExtension('audit/log'),
+      routerExtension('audit/log')(),
     ],
   },
   auth: {
