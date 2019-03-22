@@ -5,7 +5,8 @@ const Event = require('../services/event');
 
 module.exports = function postSingle(data) {
   const rule = Event.parseRRule(data).parsedRRule;
-  const dates = rule.between(moment.utc().toDate(), rule.options.until);
+  const until = rule.options.until || moment.utc(rule.options.dtstart).add(1, 'week').toDate();
+  const dates = rule.between(moment.utc().toDate(), until, true);
 
   extend(data, {
     start_time: take(dates, 3),

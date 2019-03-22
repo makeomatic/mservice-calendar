@@ -41,9 +41,12 @@ class Event {
     const dtstart = moment.utc(opts.dtstart);
 
     // ensure that until > dtstart and is not too far in the past
-    assert(until.isAfter(dtstart), 'DTSTART must be before UNTIL');
+    assert(opts.until == null || until.isAfter(dtstart), 'DTSTART must be before UNTIL');
     // assert(until.subtract(1, 'year').isBefore(now), 'UNTIL must be within a year from now');
     // assert(dtstart.add(1, 'year').isAfter(now), 'DTSTART must be within the last year');
+
+    // make sure we have a single event if UNTIL is not specified (assuming the `count` is always set)
+    assert(opts.count === 1 || opts.until != null, 'Must be a one-off event when UNTIL is not provided');
 
     const { tz } = data;
     if (tz) {

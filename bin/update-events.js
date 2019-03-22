@@ -78,7 +78,7 @@ const knex = Knex(config.knex);
           tz: stationTimezone,
         })
         .catchReturn({ message: 'Invalid RRule: DTSTART must be before UNTIL' }, null)
-        .catchReturn({ message: 'Invalid RRule: DTSTART must be without the last year' }, null)
+        .catchReturn({ message: 'Invalid RRule: DTSTART must be within the last year' }, null)
         .catch(e => console.error('%j', event, e.message));
 
       if (failed === null) console.warn('>> %j', event);
