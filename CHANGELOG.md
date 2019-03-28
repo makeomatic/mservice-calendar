@@ -1,3 +1,10 @@
+## [6.0.9](https://github.com/makeomatic/mservice-calendar/compare/v6.0.8...v6.0.9) (2019-03-28)
+
+
+### Bug Fixes
+
+* **rrule:** correctly set no-until events ([#49](https://github.com/makeomatic/mservice-calendar/issues/49)) ([66a7a0f](https://github.com/makeomatic/mservice-calendar/commit/66a7a0f))
+
 ## [6.0.8](https://github.com/makeomatic/mservice-calendar/compare/v6.0.7...v6.0.8) (2019-03-07)
 
 
