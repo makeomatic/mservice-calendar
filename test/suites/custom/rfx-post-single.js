@@ -60,6 +60,23 @@ describe('rfx-post-single hook test suite', function suite() {
     return null;
   }));
 
+  before('create byhour event without until date', () => request(uri.create, {
+    token: this.token,
+    event: {
+      title: 'Test byhour event',
+      description: 'Byhour event description',
+      tags: ['music', 'jazz'],
+      hosts: ['dj felipe'],
+      rrule:
+        'DTSTART;TZID=US/Eastern:20600101T000000\nRRULE:WKST=SU;BYHOUR=12;BYMINUTE=0;BYSECOND=0;COUNT=1;FREQ=DAILY',
+      duration: 120,
+      tz: 'US/Eastern',
+    },
+  }).then((response) => {
+    this.byHourNoUntilEventId = response.body.data.id;
+    return null;
+  }));
+
   describe('event/single', () => {
     it('return aditional attributes', () => request(uri.single, {
       id: this.eventId,
@@ -94,6 +111,21 @@ describe('rfx-post-single hook test suite', function suite() {
 
       // does not include internal non-enum properties
       assert.ok(!body.data.attributes.parsedRRule);
+
+      return null;
+    }));
+
+    it('correctly return spans for no-until events', () => request(uri.single, {
+      id: this.byHourNoUntilEventId,
+      token: this.token,
+    }).then((response) => {
+      const { body, statusCode } = response;
+
+      assert.equal(statusCode, 200, JSON.stringify(body));
+      assert.ok(body.data);
+      assert.ok(body.data.id);
+      assert.ok(body.data.attributes.start_time);
+      assert.strictEqual(body.data.attributes.start_time.length, 1);
 
       return null;
     }));
