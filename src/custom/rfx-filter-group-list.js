@@ -1,10 +1,16 @@
 const uniq = require('lodash/uniq');
 const remove = require('lodash/remove');
 const findIndex = require('lodash/findIndex');
+const is = require('is');
 const get = require('lodash/get');
 
 function filterUsers(users, stationGroup) {
-  return users.filter(user => get(user, 'stationGroup', 'radiofx') === stationGroup);
+  return users.filter((user) => {
+    const userStationGroups = get(user, 'stationGroup', 'radiofx');
+
+    return is.string(userStationGroups)
+      && userStationGroups.split(',').includes(stationGroup);
+  });
 }
 
 function filterOwners(owners) {
