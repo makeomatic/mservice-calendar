@@ -51,6 +51,17 @@ module.exports = {
       },
     },
     {
+      username: 'group.admin@foo.com',
+      password: 'groupadminpassword',
+      metadata: {
+        firstName: 'GroupAdmin',
+        lastName: 'Admin',
+        roles: ['admin'],
+        stationGroup: 'group03,group04',
+        stationTimezone: 'US/Central',
+      },
+    },
+    {
       username: 'user@foo.com',
       password: 'userpassword000000',
       metadata: {
