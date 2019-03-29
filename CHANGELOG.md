@@ -1,3 +1,10 @@
+## [6.0.10](https://github.com/makeomatic/mservice-calendar/compare/v6.0.9...v6.0.10) (2019-03-29)
+
+
+### Bug Fixes
+
+* **filter-events:** adapt code for new multiple stationGroups ([#50](https://github.com/makeomatic/mservice-calendar/issues/50)) ([13bf0a2](https://github.com/makeomatic/mservice-calendar/commit/13bf0a2))
+
 ## [6.0.9](https://github.com/makeomatic/mservice-calendar/compare/v6.0.8...v6.0.9) (2019-03-28)
 
 
