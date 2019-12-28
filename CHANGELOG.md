@@ -1,3 +1,11 @@
+## [6.0.11](https://github.com/makeomatic/mservice-calendar/compare/v6.0.10...v6.0.11) (2019-12-28)
+
+
+### Bug Fixes
+
+* update deps ([c913078](https://github.com/makeomatic/mservice-calendar/commit/c913078))
+* **deps:** bump handlebars from 4.1.2 to 4.5.3 ([#53](https://github.com/makeomatic/mservice-calendar/issues/53)) ([f52d523](https://github.com/makeomatic/mservice-calendar/commit/f52d523))
+
 ## [6.0.10](https://github.com/makeomatic/mservice-calendar/compare/v6.0.9...v6.0.10) (2019-03-29)
 
 
